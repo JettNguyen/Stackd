@@ -1,6 +1,6 @@
 # Stackd
 
-A web app for storing and studying flashcards.
+A web app custom made for UF students to store and study flashcards.
 
 ## Project Overview
 
@@ -18,12 +18,20 @@ University of Florida students in classes that require memorization of concepts/
 
 ```bash
 cd server
-npm i
+npm install
 ```
 
 ```bash
 cd ../client
-npm i
+npm install
+```
+
+### Run the frontend
+
+in ```client``` run
+
+```bash
+npm run dev
 ```
 
 ## Template
