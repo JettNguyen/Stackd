@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faGlasses, faFolder, faChevronLeft, faChevronRight, faStar, faCheck, faPenToSquare } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faGlasses, faFolder, faChevronLeft, faChevronRight, faStar, faCheck, faPenToSquare, faLink } from '@fortawesome/free-solid-svg-icons';
 import logo from '../assets/logo.png';
 import './StackView.css';
 
@@ -13,6 +13,8 @@ const StackView = () => {
   const [showDefinition, setShowDefinition] = useState(false);
   const [cardStatuses, setCardStatuses] = useState({});
   const [isFlipping, setIsFlipping] = useState(false);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const copyTimeoutRef = useRef(null);
 
   const stacks = [
     { id: 1, name: 'Midterm', class: 'HCI', cardCount: 12 },
@@ -124,6 +126,38 @@ const StackView = () => {
     });
   };
 
+  const handleCopyLink = async () => {
+    const shareUrl = `${window.location.origin}/stack/${stack.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch (error) {
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+    setIsLinkCopied(true);
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => {
+      setIsLinkCopied(false);
+    }, 1500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handlePrevCard = () => {
     if (currentCardIndex > 0) {
       setCurrentCardIndex(currentCardIndex - 1);
@@ -193,6 +227,13 @@ const StackView = () => {
         {!isStudyMode ? (
           <>
             <div className="stack-actions">
+              <button
+                className="stack-side-button stack-side-button-link"
+                onClick={handleCopyLink}
+                aria-label="Copy stack link"
+              >
+                <FontAwesomeIcon icon={faLink} />
+              </button>
               <div className="stack-card-large">
                 <div className="stack-layer-back"></div>
                 <div className="stack-layer-middle"></div>
@@ -200,7 +241,20 @@ const StackView = () => {
                   <span>{stack.name}</span>
                 </div>
               </div>
+              <button
+                className="stack-side-button stack-side-button-edit"
+                onClick={handleEdit}
+                aria-label="Edit stack"
+              >
+                <FontAwesomeIcon icon={faPenToSquare} />
+              </button>
             </div>
+
+            {isLinkCopied && (
+              <div className="copy-toast" role="status" aria-live="polite">
+                Link copied
+              </div>
+            )}
 
             <div className="stack-info">
               <div className="info-item">
@@ -216,10 +270,6 @@ const StackView = () => {
               <button className="view-button" onClick={handleStudy}>
                 <FontAwesomeIcon icon={faGlasses} />
                 <span>view</span>
-              </button>
-              <button className="view-button edit-button" onClick={handleEdit}>
-                <FontAwesomeIcon icon={faPenToSquare} />
-                <span>edit</span>
               </button>
             </div>
 
