@@ -106,12 +106,12 @@ const NewStack = () => {
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
 
-        <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
           <img src={logo} alt="Stackd Logo" className="logo-image" />
           <h1 className="logo-text">Stackd</h1>
         </div>
 
-        <button className="profile-button">
+        <button className="profile-button" onClick={() => navigate('/profile')}>
           <FontAwesomeIcon icon={faUser} />
         </button>
       </header>
