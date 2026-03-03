@@ -108,7 +108,7 @@ const StackView = () => {
   };
 
   const handleLogoClick = () => {
-    navigate('/');
+    navigate('/home');
   };
 
   const handleStudy = () => {
@@ -215,7 +215,7 @@ const StackView = () => {
         </div>
 
         {!isStudyMode ? (
-          <button className="profile-button">
+          <button className="profile-button" onClick={() => navigate('/profile')}>
             <FontAwesomeIcon icon={faUser} />
           </button>
         ) : (

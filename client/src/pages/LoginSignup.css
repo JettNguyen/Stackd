@@ -49,6 +49,8 @@
 .login-signup-form-input {
     background-color: var(--bg-card);
     border: 2px solid var(--text-secondary);
+    color: var(--text-primary);
+    padding-left: 10px;
     border-radius: 15px;
     width: 240px;
     height: 50px;
