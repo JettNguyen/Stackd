@@ -1,39 +1,12 @@
-import { type Document, model, Schema } from 'mongoose'
-import { type Account } from '../@types'
+import { Schema, model } from 'mongoose'
+import { Account } from '../@types'
 
-interface I extends Document, Account {}
-
-const instance = new Schema<I>(
+const accountSchema = new Schema<Account>(
   {
-    /*
-      document ID is set by default via MongoDB - the next line is deprecated!
-      _id: mongoose.Schema.Types.ObjectId,
-    */
-
-    username: {
-      type: String,
-      required: true,
-      lowercase: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      required: true,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
+    username: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true }
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true } // automatically adds createdAt and updatedAt
 )
 
-// NOTE! use a singular model name, mongoose automatically creates a collection like so:
-// model: 'Account' === collection: 'accounts'
-const modelName = 'Account'
-
-export default model<I>(modelName, instance)
+export default model<Account>('Account', accountSchema)

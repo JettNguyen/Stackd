@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 const ORIGIN = '*'
 const PORT = process.env.PORT || 8080
 
