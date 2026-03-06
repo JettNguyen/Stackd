@@ -38,7 +38,7 @@ const register: RequestHandler = async (req, res, next) => {
     await account.save()
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id })
 
     // Exclude password from response
     const { password: _, ...data } = account.toObject()

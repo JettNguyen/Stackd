@@ -41,7 +41,7 @@ const login: RequestHandler = async (req, res, next) => {
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id })
 
     // Remove password from response data
     const { password: _, ...accountData } = account.toObject()

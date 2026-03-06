@@ -17,7 +17,7 @@ const loginWithToken: RequestHandler = async (req, res, next) => {
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id})
 
     res.status(200).json({
       message: 'Succesfully got account',
