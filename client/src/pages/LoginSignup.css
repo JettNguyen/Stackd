@@ -1,0 +1,103 @@
+.login-signup-page {
+    min-height: 100vh;
+    background-color: var(--bg-primary);
+    padding: 100px 20px;
+    color: var(--text-primary);
+    margin-bottom: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-signup-logo-image {
+    width: 165px;
+    height: auto;
+    object-fit: contain;
+    max-width: 100%;
+    display: block;
+    margin: -30px -30px -35px;
+}
+
+.login-signup-logo-text {
+    font-size: 65px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+}
+
+.login-signup-form {
+    margin-top: 20px;
+    background-color: var(--bg-secondary);
+    width: 290px;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
+}
+
+.login-signup-form-comp {
+    margin-bottom: 10px;
+}
+
+.login-signup-form-title {
+    color: var(--text-primary);
+}
+
+.login-signup-form-input {
+    background-color: var(--bg-card);
+    border: 2px solid var(--text-secondary);
+    color: var(--text-primary);
+    padding-left: 10px;
+    border-radius: 15px;
+    width: 240px;
+    height: 50px;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.5));
+}
+
+.login-button { 
+    background-color: var(--color-primary);
+    color: var(--text-primary);
+    font-weight: bold;
+    font-size: 19px;
+    border-style: none;
+    border-radius: 10px;
+    width : 190px;
+    height: 50px;
+    margin-top: 20px;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
+    transition: transform 0.25s ease-in-out;
+}
+
+.login-button:active {
+    transform: translateY(2px);
+}
+
+.switch-button { 
+    background-color: var(--color-secondary);
+    color: var(--text-primary);
+    font-size: 12px;
+    border-style: none;
+    border-radius: 50px;
+    width : 160px;
+    height: 50px;
+    margin-top: 15px;
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
+    transition: transform 0.25s ease-in-out;
+}
+
+.switch-button:active {
+    transform: translateY(2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .login-button:hover {
+        transform: translateY(-2px);
+    }
+
+    .switch-button:hover {
+        transform: translateY(-2px);
+    }
+}
