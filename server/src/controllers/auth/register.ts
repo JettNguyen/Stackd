@@ -31,7 +31,7 @@ const register: RequestHandler = async (req, res, next) => {
     }
 
     // Encrypt password
-    const hash = crypt.hash(password)
+    const hash = await crypt.hash(password)
 
     // Create account
     const account = new Account({ username, password: hash })

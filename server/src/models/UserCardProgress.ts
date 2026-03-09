@@ -30,3 +30,5 @@ const userCardProgressSchema = new Schema<UserCardProgress>(
   },
   { timestamps: true }
 )
+
+export default model<UserCardProgress>('UserCardProgress', userCardProgressSchema)
