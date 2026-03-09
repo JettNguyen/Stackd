@@ -1,19 +1,38 @@
-import { Schema, model, Types } from 'mongoose'
+import { Schema, model } from 'mongoose'
+import { Stack } from '../@types'
 
-const stackSchema = new Schema({
-  name: { type: String, required: true },
-  visibility: { type: String, enum: ['public', 'private'], default: 'private' },
+const stackSchema = new Schema<Stack>(
+  {
+    name: { type: String, required: true },
 
-  // List of users with roles
-  users: [
-    {
-      account: { type: Schema.Types.ObjectId, ref: 'Account', required: true },
-      role: { type: String, enum: ['viewer', 'editor', 'owner'], required: true }
-    }
-  ],
+    class: {
+      type: Schema.Types.ObjectId,
+      ref: 'Class',
+      required: true
+    },
 
-  // List of cards in this stack
-  cards: [{ type: Schema.Types.ObjectId, ref: 'Card' }]
-}, { timestamps: true })
+    visibility: {
+      type: String,
+      enum: ['public', 'private'],
+      default: 'private'
+    },
 
-export default model('Stack', stackSchema)
+    users: [
+      {
+        account: {
+          type: Schema.Types.ObjectId,
+          ref: 'Account',
+          required: true
+        },
+        role: {
+          type: String,
+          enum: ['viewer', 'editor', 'owner'],
+          required: true
+        }
+      }
+    ]
+  },
+  { timestamps: true }
+)
+
+export default model<Stack>('Stack', stackSchema)

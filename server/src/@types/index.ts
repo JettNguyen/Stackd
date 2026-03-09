@@ -12,24 +12,31 @@ export interface Class {
     account: Types.ObjectId
     role: 'viewer' | 'editor' | 'owner'
   }[]
-  stacks: Types.ObjectId[]
   createdAt?: Date
   updatedAt?: Date
 }
 
 export interface Stack {
   name: string
+  class: Types.ObjectId
   visibility: 'public' | 'private'
   users: {
     account: Types.ObjectId
     role: 'viewer' | 'editor' | 'owner'
   }[]
-  cards: Types.ObjectId[]
   createdAt?: Date
   updatedAt?: Date
 }
 
 export interface Card {
+  stack: Types.ObjectId
   front: string
   back: string
+}
+
+export interface UserCardProgress {
+  account: Types.ObjectId
+  card: Types.ObjectId
+  stack: Types.ObjectId
+  status: 'learning' | 'review' | 'mastered'
 }
