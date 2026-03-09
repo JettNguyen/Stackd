@@ -1,6 +1,8 @@
 import { type RequestHandler } from 'express'
 import Stack from '../../models/Stack'
 import Class from '../../models/Class'
+import Card from '../../models/Card'
+import UserCardProgress from '../../models/UserCardProgress'
 
 const view: RequestHandler = async (req, res, next) => {
   try {
@@ -18,6 +20,7 @@ const view: RequestHandler = async (req, res, next) => {
     }
 
     const selectedClass = await Class.findById(selectedStack.class).lean()
+    const selectedCards = await Card.find({stack: selectedStack._id}).lean()
 
     if (!selectedClass) {
       return next({
@@ -28,6 +31,26 @@ const view: RequestHandler = async (req, res, next) => {
 
     let role: string | null = null
     const { uid } = req.auth || {}
+
+    let userProgressMap: Record<string, 'learning' | 'review' | 'mastered'> = {}
+
+    const cardsWithStatus = selectedCards.map(card => ({
+        ...card,
+        status: userProgressMap[card._id.toString()] || "learning"  // learning is default if no progress
+    }))
+
+    if (uid) {
+    const userProgress = await UserCardProgress.find({
+        account: uid,
+        stack: selectedStack._id,
+        card: { $in: selectedCards.map(c => c._id) }
+    }).lean()
+
+    userProgressMap = userProgress.reduce((acc, progress) => {
+        acc[progress.card.toString()] = progress.status
+        return acc
+    }, {} as Record<string, 'learning' | 'review' | 'mastered'>)
+    }
 
     if (uid) {
       const userEntry = selectedClass.users.find(
@@ -52,6 +75,7 @@ const view: RequestHandler = async (req, res, next) => {
       statusCode: 200,
       stack: selectedStack,
       className: selectedClass.name,
+      cards: cardsWithStatus,
       role: role
     })
 
