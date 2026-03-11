@@ -31,7 +31,7 @@ const login: RequestHandler = async (req, res, next) => {
     }
 
     // Verify password hash
-    const passOk = crypt.validate(password, account.password)
+    const passOk = await crypt.validate(password, account.password)
 
     if (!passOk) {
       return next({
@@ -41,7 +41,7 @@ const login: RequestHandler = async (req, res, next) => {
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id })
 
     // Remove password from response data
     const { password: _, ...accountData } = account.toObject()

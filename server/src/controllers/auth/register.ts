@@ -31,14 +31,14 @@ const register: RequestHandler = async (req, res, next) => {
     }
 
     // Encrypt password
-    const hash = crypt.hash(password)
+    const hash = await crypt.hash(password)
 
     // Create account
     const account = new Account({ username, password: hash })
     await account.save()
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id })
 
     // Exclude password from response
     const { password: _, ...data } = account.toObject()
