@@ -18,7 +18,8 @@ const login: RequestHandler = async (req, res, next) => {
       return next(validationError)
     }
 
-    const { username, password } = req.body
+    const username = String(req.body.username || '').trim().toLowerCase()
+    const password = String(req.body.password || '')
 
     // Get account from DB, and verify existance
     const account = await Account.findOne({ username })

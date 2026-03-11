@@ -1,6 +1,7 @@
 import { Types } from 'mongoose'
 
 export interface Account {
+  email: string
   username: string
   password: string
 }

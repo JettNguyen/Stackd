@@ -1,32 +1,80 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faPlus, faArrowRight, faArrowLeft, faFolder } from '@fortawesome/free-solid-svg-icons';
 import logo from '../assets/logo.png';
+import { getOrInitMockData, getSessionUsername } from '../utils/mockData';
+import Breadcrumbs from '../components/Breadcrumbs';
+import { apiRequest, clearAuthToken } from '../utils/api';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
   const [showMoreStacks, setShowMoreStacks] = useState(false);
   const [showMoreClasses, setShowMoreClasses] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [stacks, setStacks] = useState([]);
 
-  const stacks = [
-    { id: 1, name: 'Midterm', class: 'HCI' },
-    { id: 2, name: 'Final', class: 'HCI' },
-    { id: 3, name: 'Module 5', class: 'Internet Programming' },
-    { id: 4, name: 'Unit 6 Vocabulary', class: 'AP HuG' },
-    { id: 5, name: 'Module 4', class: 'Internet Programming' },
-    { id: 6, name: 'Module 3', class: 'Internet Programming' },
-    { id: 7, name: 'Module 1', class: 'Internet Programming' },
-    { id: 8, name: 'Module 2', class: 'Internet Programming' },
-  ];
+  useEffect(() => {
+    const username = getSessionUsername();
+    if (!username) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  const classes = [
-    { id: 1, name: 'HCI', stackCount: 3 },
-    { id: 2, name: 'Internet Programming', stackCount: 5 },
-    { id: 3, name: 'Networks', stackCount: 0 },
-    { id: 4, name: 'AP HuG', stackCount: 2 },
-  ];
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        const response = await apiRequest('/account/user');
+        if (!isMounted) {
+          return;
+        }
+
+        const apiClasses = Array.isArray(response?.classes) ? response.classes : [];
+        const apiStacks = Array.isArray(response?.stacks) ? response.stacks : [];
+
+        setClasses(
+          apiClasses.map((item) => ({
+            id: item._id,
+            name: item.name,
+            stackCount: Number(item.stackCount || 0),
+          }))
+        );
+
+        setStacks(
+          apiStacks.map((item) => ({
+            id: item._id,
+            name: item.name,
+            className: item.className || '',
+          }))
+        );
+      } catch (error) {
+        if (error?.status === 401 || error?.status === 400) {
+          clearAuthToken();
+        }
+
+        const data = getOrInitMockData(username);
+        if (!isMounted) {
+          return;
+        }
+
+        setStacks(data.stacks);
+        setClasses(
+          data.classes.map((item) => ({
+            ...item,
+            stackCount: data.stacks.filter((stack) => String(stack.classId) === String(item.id)).length,
+          }))
+        );
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   return (
     <div className="home-page">
@@ -39,6 +87,7 @@ const Home = () => {
           <FontAwesomeIcon icon={faUser} />
         </button>
       </header>
+      <Breadcrumbs items={[{ label: 'Home' }]} />
 
       <section className="stacks-section">
         <div className="section-header">
@@ -59,7 +108,7 @@ const Home = () => {
               <div className="stack-layer-front">
                 <div className="stack-content">
                   <span className="stack-name">{stack.name}</span>
-                  {stack.class && <span className="stack-class-label">{stack.class}</span>}
+                  {stack.className && <span className="stack-class-label">{stack.className}</span>}
                 </div>
               </div>
             </div>
@@ -76,7 +125,7 @@ const Home = () => {
       <section className="classes-section">
         <div className="section-header">
           <h2>Your Classes</h2>
-          <button className="add-button">
+          <button className="add-button" onClick={() => navigate('/class/new')}>
             <FontAwesomeIcon icon={faPlus} />
           </button>
         </div>

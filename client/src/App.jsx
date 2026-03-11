@@ -8,9 +8,10 @@ import NewClass from './pages/NewClass'
 import ClassView from './pages/ClassView'
 import LoginSignup from './pages/LoginSignup'
 import './styles/index.css'
+import { getAuthToken } from './utils/api'
 
 const isAuthenticated = () => {
-  return Boolean(localStorage.getItem('stackd_mock_session'))
+  return Boolean(getAuthToken() || localStorage.getItem('stackd_mock_session'))
 }
 
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +39,14 @@ const App = () => {
           />
           <Route
             path='/profile'
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/profile/:username'
             element={
               <ProtectedRoute>
                 <Profile />

@@ -8,6 +8,7 @@ import Stack from './models/Stack'
 import Card from './models/Card'
 import UserCardProgress from './models/UserCardProgress'
 import mongo from './utils/mongo'
+import crypt from './utils/crypt'
 
 const bootstrap = async () => {
   try {
@@ -24,10 +25,16 @@ const bootstrap = async () => {
     ])
 
     // 2. Create Accounts
+    const [alicePass, bobPass, carolPass] = await Promise.all([
+      crypt.hash('password123'),
+      crypt.hash('password123'),
+      crypt.hash('password123')
+    ])
+
     const [alice, bob, carol] = await Account.insertMany([
-      { username: 'alice_owner', password: 'password123' },
-      { username: 'bob_editor', password: 'password123' },
-      { username: 'carol_viewer', password: 'password123' },
+      { email: 'alice_owner@ufl.edu', username: 'alice_owner', password: alicePass },
+      { email: 'bob_editor@ufl.edu', username: 'bob_editor', password: bobPass },
+      { email: 'carol_viewer@ufl.edu', username: 'carol_viewer', password: carolPass },
     ])
 
     // 3. Create Classes

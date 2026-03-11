@@ -155,6 +155,13 @@
 	font-weight: 700;
 }
 
+.new-stack-feedback {
+	color: var(--color-primary);
+	font-size: 14px;
+	margin-top: -10px;
+	margin-bottom: 18px;
+}
+
 .stack-name-input {
 	width: 100%;
 	padding: 10px 15px;
