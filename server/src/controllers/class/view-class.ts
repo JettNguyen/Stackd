@@ -6,7 +6,7 @@ const view: RequestHandler = async (req, res, next) => {
   try {
     const { class: classId } = req.query
 
-    const selectedClass = await Class.findById(classId).lean()
+    const selectedClass = await Class.findById(classId)
 
     if (!selectedClass) {
       return next({
@@ -40,9 +40,30 @@ const view: RequestHandler = async (req, res, next) => {
     const stacks = await Stack.find({ class: classId })
       .select('_id name createdAt updatedAt')
       .lean()
+    
+    // if owner pass the list of users and roles
+    if (role === 'owner') {
+      const classData = await Class.findById(classId)
+        .populate('users.account', 'username')
+      if (classData) {
+        const users = classData.users.map(u => ({
+          accountId: (u.account as any)._id,
+          username: (u.account as any).username,
+          role: u.role
+        }))
+        return next({
+          message: 'Class Found!',
+          statusCode: 200,
+          name: selectedClass.name,
+          stacks: stacks,
+          role: role,
+          users: users
+        })
+      }
+    }
 
     return next({
-      message: '',
+      message: 'Class Found!',
       statusCode: 200,
       name: selectedClass.name,
       stacks: stacks,

@@ -1,7 +1,7 @@
 import express from 'express'
 import checkBearerToken from '../middlewares/check-bearer-token'
 import errorHandler from '../middlewares/error-handler'
-import view from '../controllers/class/view'
+import view from '../controllers/class/view-class'
 
 // initialize router
 const router = express.Router()
