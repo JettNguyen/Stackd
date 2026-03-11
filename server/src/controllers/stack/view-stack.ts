@@ -17,7 +17,7 @@ const view: RequestHandler = async (req, res, next) => {
 
     // Get stack
     const selectedStack = await Stack.findById(stackId)
-      .select('_id name class users visibility createdAt updatedAt')
+      .select('_id name class visibility createdAt updatedAt') // users removed (only owner should see)
       .lean()
 
     if (!selectedStack) {
@@ -46,13 +46,14 @@ const view: RequestHandler = async (req, res, next) => {
     let role: string | null = null
 
     // Determine role from stack users
-    if (uid && selectedStack.users) {
-      const userEntry = selectedStack.users.find(
-        (u: any) => u.account.toString() === uid.toString()
-      )
+    if (uid) {
+      const stackUserEntry = await Stack.findOne(
+        { _id: selectedStack._id, 'users.account': uid },
+        { 'users.$': 1 } // return only the matched users array element
+      ).lean()
 
-      if (userEntry) {
-        role = userEntry.role
+      if (stackUserEntry && stackUserEntry.users && stackUserEntry.users.length > 0) {
+        role = stackUserEntry.users[0].role
       }
     }
 
@@ -118,7 +119,7 @@ const view: RequestHandler = async (req, res, next) => {
       }
     }
 
-    // Normal response
+    // Normal response (non-owner)
     return next({
       message: 'Stack found',
       statusCode: 200,
