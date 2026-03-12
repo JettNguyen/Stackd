@@ -37,7 +37,7 @@ const view: RequestHandler = async (req, res, next) => {
       })
     }
 
-    const stacks = await Stack.find({ class: classId })
+    const stacks = await Stack.find({ class: classId, 'users.account': uid})
       .select('_id name createdAt updatedAt')
       .lean()
     
