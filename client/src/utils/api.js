@@ -3,6 +3,34 @@ const TOKEN_KEY = 'stackd_auth_token';
 
 const buildUrl = (path) => `${API_BASE}${path}`;
 
+const decodeJwtPayload = (token) => {
+  try {
+    const [, encodedPayload] = String(token || '').split('.');
+
+    if (!encodedPayload) {
+      return null;
+    }
+
+    const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+    const normalized = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+
+    return JSON.parse(window.atob(normalized));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenExpired = (token) => {
+  const payload = decodeJwtPayload(token);
+  const expiresAt = Number(payload?.exp || 0);
+
+  if (!expiresAt) {
+    return false;
+  }
+
+  return expiresAt * 1000 <= Date.now();
+};
+
 export const getAuthToken = () => localStorage.getItem(TOKEN_KEY) || '';
 
 export const setAuthToken = (token) => {
@@ -47,6 +75,11 @@ export const restoreSessionFromToken = async () => {
   const token = getAuthToken();
 
   if (!token) {
+    return null;
+  }
+
+  if (isTokenExpired(token)) {
+    clearAuthToken();
     return null;
   }
 

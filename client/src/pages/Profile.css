@@ -4,6 +4,7 @@
 	color: var(--text-primary);
 	background-color: var(--bg-primary);
 	display: grid;
+	align-content: start;
 	gap: 15px;
 }
 

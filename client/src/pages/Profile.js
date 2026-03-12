@@ -122,12 +122,19 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="profile-page">
+        <PageHeader showBack />
+
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },
             { label: 'Profile' },
           ]}
         />
+
+        <div className="home-loading" role="status" aria-live="polite">
+          <div className="home-loading-spinner"></div>
+          <p>Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -135,6 +142,8 @@ const Profile = () => {
   if (!profileData) {
     return (
       <div className="profile-page">
+        <PageHeader showBack />
+
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },

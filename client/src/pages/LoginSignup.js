@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import './LoginSignup.css';
 import logo from '../assets/logo.png';
 import { apiRequest, getAuthToken, setAuthToken } from '../utils/api';
 
 const LoginSignup = () => {
   const navigate = useNavigate();
+  const authToken = getAuthToken();
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ username: '', password: '' });
 
   useEffect(() => {
-    if (getAuthToken()) {
+    if (authToken) {
       navigate('/home', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, authToken]);
+
+  if (authToken) {
+    return <Navigate to='/home' replace />;
+  }
 
   const upsertLocalUser = (username) => {
     const users = JSON.parse(localStorage.getItem('stackd_mock_users') || '[]');
@@ -104,7 +109,7 @@ const LoginSignup = () => {
   return (
     <div className="login-signup-page">
       <div className="login-signup-header">
-        <div className="logo">
+        <div className="login-signup-brand">
           <img src={logo} alt="Stackd Logo" className="login-signup-logo-image" />
           <h1 className="login-signup-logo-text">Stackd</h1>
         </div>

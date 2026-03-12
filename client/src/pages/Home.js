@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faArrowRight, faArrowLeft, faFolder } from '@fortawesome/free-solid-svg-icons';
-import { getOrInitMockData, getSessionUsername } from '../utils/mockData';
 import Breadcrumbs from '../components/Breadcrumbs';
 import PageHeader from '../components/PageHeader';
-import { apiRequest, clearAuthToken } from '../utils/api';
+import { apiRequest, clearAuthToken, getAuthToken } from '../utils/api';
 import './Home.css';
 
 const getCollapsedCardCount = () => {
@@ -51,8 +50,7 @@ const Home = () => {
   const visibleClasses = shouldShowMoreClasses && !showMoreClasses ? classes.slice(0, collapsedCardCount) : classes;
 
   useEffect(() => {
-    const username = getSessionUsername();
-    if (!username) {
+    if (!getAuthToken()) {
       navigate('/', { replace: true });
       return;
     }
@@ -91,20 +89,18 @@ const Home = () => {
       } catch (error) {
         if (error?.status === 401 || error?.status === 400) {
           clearAuthToken();
+          if (isMounted) {
+            navigate('/', { replace: true });
+          }
+          return;
         }
 
-        const data = getOrInitMockData(username);
         if (!isMounted) {
           return;
         }
 
-        setStacks(data.stacks);
-        setClasses(
-          data.classes.map((item) => ({
-            ...item,
-            stackCount: data.stacks.filter((stack) => String(stack.classId) === String(item.id)).length,
-          }))
-        );
+        setStacks([]);
+        setClasses([]);
       } finally {
         if (isMounted) {
           setIsLoading(false);
