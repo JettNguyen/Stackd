@@ -1,7 +1,7 @@
 import { Types } from 'mongoose'
 
 export interface Account {
-  email: string
+  email?: string
   username: string
   password: string
 }
@@ -19,7 +19,7 @@ export interface Class {
 
 export interface Stack {
   name: string
-  class: Types.ObjectId
+  class?: Types.ObjectId
   visibility: 'public' | 'private'
   users: {
     account: Types.ObjectId

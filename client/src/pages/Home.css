@@ -6,63 +6,50 @@
     margin-bottom: 150px;
 }
 
-.home-header {
+.home-loading {
+    min-height: 50vh;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: center;
-    margin-bottom: 10px;
-    padding: 5px 0;
+    place-items: center;
+    gap: 15px;
+    align-content: center;
+    color: var(--text-secondary);
 }
 
-.logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    grid-column: 2;
-    width: 100%;
+.home-loading p {
+    font-size: 16px;
+    font-weight: 600;
 }
 
-.logo-image {
-    width: 75px;
-    height: auto;
-    object-fit: contain;
-    max-width: 100%;
-    display: block;
-    margin: -15px -15px -20px;
+.home-loading-spinner {
+    width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	border: 5px solid rgba(222, 222, 222, 0.25);
+	border-top-color: var(--color-primary);
+	animation: home-spin 0.9s linear infinite;
 }
 
-.logo-text {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--color-primary);
-    margin: 0;
-}
-
-.profile-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 999px;
-    background-color: var(--color-secondary);
-    border: none;
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: transform 0.25s ease-in-out;
-    justify-self: end;
-}
-
-.profile-button:active {
-    transform: translateY(2px);
+@keyframes home-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .stacks-section,
 .classes-section {
     margin-bottom: 25px;
 }
+
+.home-empty-state {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 15px;
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+
 
 .section-header {
     display: flex;
@@ -89,24 +76,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
     transition: background-color 0.25s ease-in-out, transform 0.25s ease-in-out;
-}
-
-.add-button:active {
-    transform: translateY(2px);
 }
 
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     padding: 0 15px;
-}
-
-.cards-grid:not(.show-all) > .stack-card:nth-child(n+6),
-.cards-grid:not(.show-all) > .class-card:nth-child(n+6) {
-    display: none;
 }
 
 .stack-card {
@@ -117,7 +95,7 @@
     transition: transform 0.25s ease-in-out;
     overflow: visible;
     margin-bottom: 20px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 }
 
 .stack-layer-back {
@@ -167,14 +145,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     text-align: center;
     width: 100%;
-    padding: 0 6px;
+    padding: 0 5px;
 }
 
 .stack-name {
-    font-size: 14px;
+    font-size: clamp(14px, 4vw, 22px);
     line-height: 1.1;
     max-width: 100%;
     overflow: hidden;
@@ -185,7 +163,7 @@
 }
 
 .stack-class-label {
-    font-size: 10px;
+    font-size: clamp(11px, 3vw, 16px);
     font-weight: 300;
     opacity: 0.75;
     line-height: 1.2;
@@ -219,25 +197,26 @@
 }
 
 .folder-icon {
-    font-size: clamp(85px, 24vw, 195px);
+    font-size: clamp(90px, 30vw, 220px);
     margin: -15px -20px -20px;
     color: var(--color-primary);
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+    transition: transform 0.25s ease-in-out;
 }
 
 .stack-badge {
     position: absolute;
-    bottom: -5px;
-    right: -5px;
+    bottom: clamp(-10px, -1.5vw, -15px);
+    right: clamp(-10px, -1.5vw, -15px);
     background-color: var(--color-secondary);
     color: var(--text-primary);
     border-radius: 50%;
-    width: clamp(24px, 5vw, 44px);
-    height: clamp(24px, 5vw, 44px);
+    width: clamp(28px, 6vw, 52px);
+    height: clamp(28px, 6vw, 52px);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(10px, 2.5vw, 18px);
+    font-size: clamp(11px, 3vw, 20px);
     font-weight: 800;
     border: 2px solid var(--bg-primary);
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
@@ -264,7 +243,7 @@
 }
 
 .see-more-button {
-    background-color: rgb(85, 85, 85, 0.25);
+    background-color: var(--bg-overlay-soft);
     border: 2px dashed var(--text-secondary);
     border-radius: 10px;
     display: flex;
@@ -274,7 +253,7 @@
     gap: 10px;
     color: var(--color-secondary);
     cursor: pointer;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
     transition: border-color 0.25s ease-in-out, transform 0.25s ease-in-out;
 }
 
@@ -292,18 +271,18 @@
 }
 
 .cards-grid.show-all .see-more-button {
-    background-color: rgba(85, 85, 85, 0.5);
+    background-color: var(--bg-overlay-strong);
     border: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .profile-button:hover {
-        transform: translateY(-2px);
+    .class-card:hover .folder-icon {
+        transform: translateY(-4px);
     }
 
     .add-button:hover {
-        background-color: var(--bg-tertiary);
         transform: translateY(-2px);
+        background-color: var(--bg-tertiary);
     }
 
     .stack-card:hover .stack-layer-front {
@@ -318,14 +297,9 @@
         transform: translateY(-12px);
     }
 
-    .class-card:hover {
-        transform: translateY(-2px);
-    }
-
     .see-more-button:hover {
-        transform: translateY(-2px);
         border-color: var(--color-secondary);
-        background-color: rgb(85, 85, 85, 0.35);
+        background-color: var(--bg-overlay-mid);
     }
 }
 
@@ -333,31 +307,6 @@
     .home-page {
         padding: 25px 50px;
         margin-bottom: 200px;
-    }
-
-    .cards-grid:not(.show-all) > .stack-card:nth-child(n+8),
-    .cards-grid:not(.show-all) > .class-card:nth-child(n+8) {
-        display: none;
-    }
-
-    .home-header {
-        margin-bottom: 40px;
-        padding: 20px 0;
-        gap: 20px;
-    }
-
-    .logo-image {
-        width: 85px;
-    }
-
-    .logo-text {
-        font-size: 32px;
-    }
-
-    .profile-button {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
     }
 
     .section-header {
@@ -368,28 +317,22 @@
         font-size: 36px;
     }
 
-    .add-button {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-    }
-
     .cards-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
         padding: 0 20px;
     }
 
     .stack-name {
-        font-size: 14px;
+        font-size: clamp(16px, 2.6vw, 28px);
     }
 
     .stack-class-label {
-        font-size: 12px;
+        font-size: clamp(10px, 1.8vw, 18px);
     }
 
     .folder-icon {
-        font-size: clamp(85px, 18vw, 195px);
+        font-size: clamp(95px, 20vw, 210px);
     }
 
     .class-name {
@@ -417,33 +360,8 @@
 @media (min-width: 1250px) {
     .home-page {
         padding: 25px;
-        max-width: 1500px;
-        margin: 0 auto;
+        margin: 0 100px;
         margin-bottom: 250px;
-    }
-
-    .cards-grid:not(.show-all) > .stack-card:nth-child(n+10),
-    .cards-grid:not(.show-all) > .class-card:nth-child(n+10) {
-        display: none;
-    }
-
-    .home-header {
-        margin-bottom: 50px;
-        padding: 25px 0;
-    }
-
-    .logo-image {
-        width: 95px;
-    }
-
-    .logo-text {
-        font-size: 40px;
-    }
-
-    .profile-button {
-        width: 60px;
-        height: 60px;
-        font-size: 24px;
     }
 
     .section-header h2 {
@@ -457,7 +375,7 @@
     }
 
     .cards-grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 15px;
         padding: 0 30px;
     }
@@ -467,15 +385,15 @@
     }
 
     .stack-name {
-        font-size: 24px;
+        font-size: clamp(16px, 1.9vw, 34px);
     }
 
     .stack-class-label {
-        font-size: 16px;
+        font-size: clamp(11px, 1.1vw, 20px);
     }
 
     .folder-icon {
-        font-size: clamp(85px, 18vw, 195px);
+        font-size: clamp(100px, 15vw, 210px);
     }
 
     .class-name {

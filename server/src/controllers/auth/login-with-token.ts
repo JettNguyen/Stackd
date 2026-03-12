@@ -12,15 +12,15 @@ const loginWithToken: RequestHandler = async (req, res, next) => {
     if (!account) {
       return next({
         statusCode: 400,
-        message: 'Bad credentials',
+        message: 'Session expired. Please sign in again.',
       })
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id})
+    const token = jwt.signToken({ uid: account._id, username: account.username })
 
     res.status(200).json({
-      message: 'Succesfully got account',
+      message: 'Successfully got account',
       data: account,
       token,
     })

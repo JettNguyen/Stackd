@@ -1,12 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faPlus, faArrowRight, faArrowLeft, faFolder } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
+import { faPlus, faArrowRight, faArrowLeft, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { getOrInitMockData, getSessionUsername } from '../utils/mockData';
 import Breadcrumbs from '../components/Breadcrumbs';
+import PageHeader from '../components/PageHeader';
 import { apiRequest, clearAuthToken } from '../utils/api';
 import './Home.css';
+
+const getCollapsedCardCount = () => {
+  if (typeof window === 'undefined') {
+    return 3;
+  }
+
+  if (window.innerWidth >= 1250) {
+    return 7;
+  }
+
+  if (window.innerWidth >= 650) {
+    return 5;
+  }
+
+  return 3;
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -14,6 +30,25 @@ const Home = () => {
   const [showMoreClasses, setShowMoreClasses] = useState(false);
   const [classes, setClasses] = useState([]);
   const [stacks, setStacks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [collapsedCardCount, setCollapsedCardCount] = useState(getCollapsedCardCount);
+
+  useEffect(() => {
+    const updateCollapsedCardCount = () => {
+      setCollapsedCardCount(getCollapsedCardCount());
+    };
+
+    window.addEventListener('resize', updateCollapsedCardCount);
+
+    return () => {
+      window.removeEventListener('resize', updateCollapsedCardCount);
+    };
+  }, []);
+
+  const shouldShowMoreStacks = stacks.length > collapsedCardCount;
+  const shouldShowMoreClasses = classes.length > collapsedCardCount;
+  const visibleStacks = shouldShowMoreStacks && !showMoreStacks ? stacks.slice(0, collapsedCardCount) : stacks;
+  const visibleClasses = shouldShowMoreClasses && !showMoreClasses ? classes.slice(0, collapsedCardCount) : classes;
 
   useEffect(() => {
     const username = getSessionUsername();
@@ -25,6 +60,10 @@ const Home = () => {
     let isMounted = true;
 
     const loadData = async () => {
+      if (isMounted) {
+        setIsLoading(true);
+      }
+
       try {
         const response = await apiRequest('/account/user');
         if (!isMounted) {
@@ -66,6 +105,10 @@ const Home = () => {
             stackCount: data.stacks.filter((stack) => String(stack.classId) === String(item.id)).length,
           }))
         );
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -78,81 +121,94 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      <header className="home-header">
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-        <button className="profile-button" onClick={() => navigate('/profile')}>
-          <FontAwesomeIcon icon={faUser} />
-        </button>
-      </header>
+      <PageHeader showProfile />
       <Breadcrumbs items={[{ label: 'Home' }]} />
 
-      <section className="stacks-section">
-        <div className="section-header">
-          <h2>Your Stacks</h2>
-          <button className="add-button" onClick={() => navigate('/stack/new')}>
-            <FontAwesomeIcon icon={faPlus} />
-          </button>
+      {isLoading ? (
+        <div className="home-loading" role="status" aria-live="polite">
+          <div className="home-loading-spinner"></div>
+          <p>Loading home...</p>
         </div>
-        <div className={`cards-grid ${showMoreStacks ? 'show-all' : ''}`}>
-          {stacks.map((stack) => (
-            <div 
-              key={stack.id} 
-              className="stack-card"
-              onClick={() => navigate(`/stack/${stack.id}`)}
-            >
-              <div className="stack-layer-back"></div>
-              <div className="stack-layer-middle"></div>
-              <div className="stack-layer-front">
-                <div className="stack-content">
-                  <span className="stack-name">{stack.name}</span>
-                  {stack.className && <span className="stack-class-label">{stack.className}</span>}
+      ) : (
+        <>
+          <section className="stacks-section">
+            <div className="section-header">
+              <h2>Your Stacks</h2>
+              <button className="add-button" onClick={() => navigate('/stack/new')}>
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
+            </div>
+            {stacks.length === 0 ? (
+              <div className="home-empty-state">
+                <p>No stacks yet. Add your first!</p>
+              </div>
+            ) : (
+            <div className={`cards-grid ${showMoreStacks ? 'show-all' : ''}`}>
+              {visibleStacks.map((stack) => (
+                <div
+                  key={stack.id}
+                  className="stack-card"
+                  onClick={() => navigate(`/stack/${stack.id}`)}
+                >
+                  <div className="stack-layer-back"></div>
+                  <div className="stack-layer-middle"></div>
+                  <div className="stack-layer-front">
+                    <div className="stack-content">
+                      <span className="stack-name">{stack.name}</span>
+                      {stack.className && <span className="stack-class-label">{stack.className}</span>}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
+              {shouldShowMoreStacks && (
+                <button className="see-more-button" onClick={() => setShowMoreStacks(!showMoreStacks)}>
+                  <FontAwesomeIcon icon={showMoreStacks ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                  <span>{showMoreStacks ? 'see less' : 'see more'}</span>
+                </button>
+              )}
             </div>
-          ))}
-          {stacks.length > 5 && (
-            <button className="see-more-button" onClick={() => setShowMoreStacks(!showMoreStacks)}>
-              <FontAwesomeIcon icon={showMoreStacks ? faArrowLeft : faArrowRight} className="arrow-icon" />
-              <span>{showMoreStacks ? 'see less' : 'see more'}</span>
-            </button>
-          )}
-        </div>
-      </section>
+            )}
+          </section>
 
-      <section className="classes-section">
-        <div className="section-header">
-          <h2>Your Classes</h2>
-          <button className="add-button" onClick={() => navigate('/class/new')}>
-            <FontAwesomeIcon icon={faPlus} />
-          </button>
-        </div>
-        <div className={`cards-grid ${showMoreClasses ? 'show-all' : ''}`}>
-          {classes.map((classItem) => (
-            <div 
-              key={classItem.id} 
-              className="class-card"
-              onClick={() => navigate(`/class/${classItem.id}`)}
-            >
-              <div className="folder-wrapper">
-                <FontAwesomeIcon icon={faFolder} className="folder-icon" />
-                {classItem.stackCount > 0 && (
-                  <span className="stack-badge">{classItem.stackCount}</span>
-                )}
-              </div>
-              <span className="class-name">{classItem.name}</span>
+          <section className="classes-section">
+            <div className="section-header">
+              <h2>Your Classes</h2>
+              <button className="add-button" onClick={() => navigate('/class/new')}>
+                <FontAwesomeIcon icon={faPlus} />
+              </button>
             </div>
-          ))}
-          {classes.length > 5 && (
-            <button className="see-more-button" onClick={() => setShowMoreClasses(!showMoreClasses)}>
-              <FontAwesomeIcon icon={showMoreClasses ? faArrowLeft : faArrowRight} className="arrow-icon" />
-              <span>{showMoreClasses ? 'see less' : 'see more'}</span>
-            </button>
-          )}
-        </div>
-      </section>
+            {classes.length === 0 ? (
+              <div className="home-empty-state">
+                <p>No classes yet. Add your first!</p>
+              </div>
+            ) : (
+            <div className={`cards-grid ${showMoreClasses ? 'show-all' : ''}`}>
+              {visibleClasses.map((classItem) => (
+                <div
+                  key={classItem.id}
+                  className="class-card"
+                  onClick={() => navigate(`/class/${classItem.id}`)}
+                >
+                  <div className="folder-wrapper">
+                    <FontAwesomeIcon icon={faFolder} className="folder-icon" />
+                    {classItem.stackCount > 0 && (
+                      <span className="stack-badge">{classItem.stackCount}</span>
+                    )}
+                  </div>
+                  <span className="class-name">{classItem.name}</span>
+                </div>
+              ))}
+              {shouldShowMoreClasses && (
+                <button className="see-more-button" onClick={() => setShowMoreClasses(!showMoreClasses)}>
+                  <FontAwesomeIcon icon={showMoreClasses ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                  <span>{showMoreClasses ? 'see less' : 'see more'}</span>
+                </button>
+              )}
+            </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 };

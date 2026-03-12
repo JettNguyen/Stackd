@@ -8,9 +8,8 @@ const register: RequestHandler = async (req, res, next) => {
   try {
     const validationError = await joi.validate(
       {
-        email: joi.instance.string().trim().email().required(),
         username: joi.instance.string().required(),
-        password: joi.instance.string().min(8).required(),
+        password: joi.instance.string().required(),
       },
       req.body
     )
@@ -19,16 +18,8 @@ const register: RequestHandler = async (req, res, next) => {
       return next(validationError)
     }
 
-    const email = String(req.body.email || '').trim().toLowerCase()
     const username = String(req.body.username || '').trim().toLowerCase()
     const password = String(req.body.password || '')
-
-    if (!email.endsWith('@ufl.edu')) {
-      return next({
-        statusCode: 400,
-        message: 'Email must end with @ufl.edu',
-      })
-    }
 
     // Verify account username as unique
     const foundUsername = await Account.findOne({ username })
@@ -36,16 +27,7 @@ const register: RequestHandler = async (req, res, next) => {
     if (foundUsername) {
       return next({
         statusCode: 400,
-        message: 'An account already exists with that "username"',
-      })
-    }
-
-    const foundEmail = await Account.findOne({ email })
-
-    if (foundEmail) {
-      return next({
-        statusCode: 400,
-        message: 'An account already exists with that "email"',
+        message: 'An account already exists with that username',
       })
     }
 
@@ -53,17 +35,17 @@ const register: RequestHandler = async (req, res, next) => {
     const hash = await crypt.hash(password)
 
     // Create account
-    const account = new Account({ email, username, password: hash })
+    const account = new Account({ username, password: hash })
     await account.save()
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id })
+    const token = jwt.signToken({ uid: account._id, username: account.username })
 
     // Exclude password from response
     const { password: _, ...data } = account.toObject()
 
     res.status(201).json({
-      message: 'Succesfully registered',
+      message: 'Successfully registered',
       data,
       token,
     })

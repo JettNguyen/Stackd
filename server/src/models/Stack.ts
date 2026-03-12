@@ -8,7 +8,7 @@ const stackSchema = new Schema<Stack>(
     class: {
       type: Schema.Types.ObjectId,
       ref: 'Class',
-      required: true
+      required: false
     },
 
     visibility: {

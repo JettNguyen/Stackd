@@ -1,4 +1,4 @@
-.breadcrumbs {
+﻿.breadcrumbs {
   display: none;
 }
 
@@ -6,8 +6,8 @@
   .breadcrumbs {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin: 0 0 14px;
+    gap: 5px;
+    margin: 0 0 15px;
     color: var(--text-secondary);
     font-size: 14px;
   }
@@ -15,7 +15,7 @@
   .breadcrumbs-item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
   }
 
   .breadcrumbs-link {
@@ -24,13 +24,8 @@
     color: var(--text-secondary);
     cursor: pointer;
     font: inherit;
-    padding: 0;
     text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .breadcrumbs-link:hover {
-    color: var(--text-primary);
+    text-underline-offset: 1px;
   }
 
   .breadcrumbs-current {
@@ -39,5 +34,11 @@
 
   .breadcrumbs-separator {
     color: var(--text-secondary);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .breadcrumbs-link:hover {
+      color: var(--text-primary);
+    }
   }
 }

@@ -1,5 +1,5 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import StackView from './pages/StackView'
 import Profile from './pages/Profile'
@@ -8,10 +8,10 @@ import NewClass from './pages/NewClass'
 import ClassView from './pages/ClassView'
 import LoginSignup from './pages/LoginSignup'
 import './styles/index.css'
-import { getAuthToken } from './utils/api'
+import { clearAuthToken, getAuthToken, restoreSessionFromToken } from './utils/api'
 
 const isAuthenticated = () => {
-  return Boolean(getAuthToken() || localStorage.getItem('stackd_mock_session'))
+  return Boolean(getAuthToken())
 }
 
 const ProtectedRoute = ({ children }) => {
@@ -23,6 +23,43 @@ const ProtectedRoute = ({ children }) => {
 }
 
 const App = () => {
+  const [isBootstrappingAuth, setIsBootstrappingAuth] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const bootstrapAuth = async () => {
+      const token = getAuthToken()
+
+      if (!token) {
+        if (isMounted) {
+          setIsBootstrappingAuth(false)
+        }
+        return
+      }
+
+      try {
+        await restoreSessionFromToken()
+      } catch {
+        clearAuthToken()
+      } finally {
+        if (isMounted) {
+          setIsBootstrappingAuth(false)
+        }
+      }
+    }
+
+    bootstrapAuth()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  if (isBootstrappingAuth) {
+    return null
+  }
+
   return (
     <Router>
       <div className='App'>
@@ -55,11 +92,7 @@ const App = () => {
           />
           <Route
             path='/stack/:id'
-            element={
-              <ProtectedRoute>
-                <StackView />
-              </ProtectedRoute>
-            }
+            element={<StackView />}
           />
           <Route
             path='/stack/new'
@@ -71,11 +104,7 @@ const App = () => {
           />
           <Route
             path='/class/:id'
-            element={
-              <ProtectedRoute>
-                <ClassView />
-              </ProtectedRoute>
-            }
+            element={<ClassView />}
           />
           <Route
             path='/class/new'

@@ -27,7 +27,7 @@ const login: RequestHandler = async (req, res, next) => {
     if (!account) {
       return next({
         statusCode: 400,
-        message: 'Bad credentials',
+        message: 'Incorrect username or password',
       })
     }
 
@@ -37,18 +37,18 @@ const login: RequestHandler = async (req, res, next) => {
     if (!passOk) {
       return next({
         statusCode: 400,
-        message: 'Bad credentials',
+        message: 'Incorrect username or password',
       })
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id })
+    const token = jwt.signToken({ uid: account._id, username: account.username })
 
     // Remove password from response data
     const { password: _, ...accountData } = account.toObject()
 
     res.status(200).json({
-      message: 'Succesfully logged-in',
+      message: 'Successfully logged in',
       data: accountData,
       token,
     })

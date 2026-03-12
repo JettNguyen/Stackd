@@ -1,0 +1,138 @@
+.page-header {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) 50px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto 10px;
+  padding: 5px 0;
+}
+
+.page-header-side {
+  display: flex;
+  align-items: center;
+}
+
+.page-header-side-right {
+  justify-content: flex-end;
+}
+
+.page-header-icon-button,
+.page-header-spacer {
+  width: 50px;
+  height: 50px;
+}
+
+.page-header-icon-button {
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.page-header-back-button {
+  border-radius: 10px;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.page-header-back-button:active {
+  background-color: var(--bg-card);
+}
+
+.page-header-profile-button {
+  border-radius: 100%;
+  background-color: var(--color-secondary);
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.page-header-profile-button:active {
+  transform: scale(0.96);
+}
+
+.page-header-brand {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.page-header-logo-image {
+  width: 75px;
+  height: auto;
+  object-fit: contain;
+  max-width: 100%;
+  display: block;
+  margin: -15px -15px -20px;
+}
+
+.page-header-logo-text {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page-header-back-button:hover {
+    background-color: var(--bg-card);
+  }
+
+  .page-header-profile-button:hover {
+    background-color: var(--color-secondary-dark);
+  }
+}
+
+@media (min-width: 650px) {
+  .page-header {
+    margin: 0 auto 40px;
+    padding: 20px 0;
+  }
+
+  .page-header-logo-image {
+    width: 80px;
+  }
+
+  .page-header-logo-text {
+    font-size: 32px;
+  }
+
+  .page-header-icon-button {
+    font-size: 20px;
+  }
+}
+
+@media (min-width: 1250px) {
+  .page-header {
+    grid-template-columns: 55px minmax(0, 1fr) 55px;
+    margin: 0 auto 50px;
+    padding: 25px 0;
+  }
+
+  .page-header-icon-button,
+  .page-header-spacer {
+    width: 55px;
+    height: 55px;
+  }
+
+  .page-header-icon-button {
+    font-size: 24px;
+  }
+
+  .page-header-logo-image {
+    width: 90px;
+  }
+
+  .page-header-logo-text {
+    font-size: 36px;
+  }
+}

@@ -26,9 +26,9 @@ const bootstrap = async () => {
 
     // 2. Create Accounts
     const [alicePass, bobPass, carolPass] = await Promise.all([
-      crypt.hash('password123'),
-      crypt.hash('password123'),
-      crypt.hash('password123')
+      crypt.hash('123'),
+      crypt.hash('123'),
+      crypt.hash('123')
     ])
 
     const [alice, bob, carol] = await Account.insertMany([

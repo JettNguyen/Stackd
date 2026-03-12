@@ -5,77 +5,6 @@
     color: var(--text-primary);
 }
 
-.stack-view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding: 5px 0;
-}
-
-.back-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    background-color: transparent;
-    border: none;
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: background-color 0.25s ease-in-out;
-}
-
-.back-button:active {
-    background-color: var(--bg-card);
-}
-
-.logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    flex: 1;
-    width: 100%;
-}
-
-.logo-image {
-    width: 75px;
-    height: auto;
-    object-fit: contain;
-    max-width: 100%;
-    display: block;
-    margin: -15px -15px -20px;
-}
-
-.logo-text {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--color-primary);
-    margin: 0;
-}
-
-.profile-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 999px;
-    background-color: var(--color-secondary);
-    border: none;
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: transform 0.25s ease-in-out;
-}
-
-.profile-button:active {
-    transform: translateY(1px);
-}
-
 .profile-button-placeholder {
     width: 50px;
     height: 50px;
@@ -84,6 +13,35 @@
 .stack-view-content {
     max-width: 600px;
     margin: 0 auto;
+}
+
+.stack-view-loading {
+    min-height: 50vh;
+    display: grid;
+    place-items: center;
+    gap: 15px;
+    align-content: center;
+    color: var(--text-secondary);
+}
+
+.stack-view-loading p {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stack-view-loading-spinner {
+    width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	border: 5px solid rgba(222, 222, 222, 0.25);
+	border-top-color: var(--color-primary);
+	animation: stack-view-spin 0.9s linear infinite;
+}
+
+@keyframes stack-view-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .stack-actions {
@@ -95,8 +53,8 @@
 }
 
 .stack-side-button {
-    width: 46px;
-    height: 46px;
+    width: 45px;
+    height: 45px;
     border-radius: 10px;
     border: none;
     background-color: var(--bg-card);
@@ -106,17 +64,13 @@
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
     transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out, color 0.25s ease-in-out;
 }
 
 .stack-side-button-link {
     background-color: var(--color-secondary);
     color: var(--text-primary);
-}
-
-.stack-side-button:active {
-    transform: translateY(2px);
 }
 
 .copy-toast {
@@ -126,11 +80,11 @@
     transform: translateX(-50%);
     background-color: var(--bg-card);
     color: var(--text-primary);
-    padding: 8px 14px;
-    border-radius: 999px;
+    padding: 10px 15px;
+    border-radius: 1000px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
     z-index: 1500;
 }
 
@@ -177,10 +131,21 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 22px;
-    font-weight: 400;
     color: var(--text-primary);
     z-index: 3;
+    padding: 10px;
+}
+
+.stack-card-large .stack-layer-front span {
+    font-size: clamp(12px, 3vw, 18px);
+    font-weight: 400;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
 }
 
 .stack-info {
@@ -228,9 +193,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin: 25px auto 25px;
+    gap: 15px;
 }
+
+.stack-action-message {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    min-height: 20px;
+    margin: 0 0 15px;
+}
+
 
 .stack-action-buttons .view-button {
     margin: 0;
@@ -247,29 +221,6 @@
 
 .view-button.study-active:active {
     background-color: var(--color-primary-dark);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .back-button:hover {
-        background-color: var(--bg-card);
-    }
-
-    .profile-button:hover {
-        transform: translateY(-2px);
-    }
-
-    .stack-side-button:hover {
-        transform: translateY(-2px);
-    }
-
-    .view-button:hover {
-        background-color: var(--bg-tertiary);
-        transform: translateY(-2px);
-    }
-
-    .view-button.study-active:hover {
-        background-color: var(--color-primary-dark);
-    }
 }
 
 .flashcards-list {
@@ -337,8 +288,8 @@
 }
 
 .status-btn-inline {
-    width: 36px;
-    height: 36px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     border: 2px solid var(--text-secondary);
     background-color: transparent;
@@ -356,14 +307,14 @@
 }
 
 .status-btn-inline.star.active {
-    background-color: #ffdd00;
-    border-color: #ffdd00;
+    background-color: var(--color-star);
+    border-color: var(--color-star);
     color: var(--bg-primary);
 }
 
 .status-btn-inline.check.active {
-    background-color: #00CC00;
-    border-color: #00CC00;
+    background-color: var(--color-success);
+    border-color: var(--color-success);
     color: var(--text-primary);
 }
 
@@ -389,7 +340,7 @@
 }
 
 .flashcard-divider {
-    height: 2px;
+    height: 0px;
     background-color: var(--text-secondary);
     opacity: 0.5;
     margin: 15px 0;
@@ -423,7 +374,6 @@
     gap: 10px;
     width: 100%;
     max-width: 600px;
-    margin: 0px 0;
 }
 
 .nav-arrow {
@@ -493,16 +443,16 @@
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .card-status-badge.star {
-    background-color: #ffdd00;
+    background-color: var(--color-star);
     color: var(--bg-primary);
 }
 
 .card-status-badge.check {
-    background-color: #00CC00;
+    background-color: var(--color-success);
     color: var(--text-primary);
 }
 
@@ -518,10 +468,9 @@
     display: flex;
     gap: 20px;
     padding: 20px;
-    background-color: rgba(85, 85, 85, 0.5);
-    backdrop-filter: blur(2px);
+    background-color: var(--bg-overlay-strong);
     border-radius: 20px 20px 0 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     position: fixed;
     left: 0;
     right: 0;
@@ -549,7 +498,50 @@
     transform: translateY(2px);
 }
 
+.study-action-btn.star-btn.active {
+    background-color: var(--color-star);
+    border-color: var(--color-star);
+    color: var(--bg-primary);
+}
+
+.study-action-btn.check-btn.active {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--text-primary);
+}
+
+.stack-settings-button {
+    width: auto;
+    padding: 10px 15px;
+    background-color: var(--bg-card);
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 20px;
+    transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stack-settings-button:active {
+    transform: scale(0.95);
+}
+
 @media (hover: hover) and (pointer: fine) {
+    .stack-side-button:hover {
+        background-color: var(--bg-tertiary);
+    }
+
+    .view-button:hover {
+        background-color: var(--bg-tertiary);
+    }
+
+    .view-button.study-active:hover {
+        background-color: var(--color-primary-dark);
+    }
+
     .status-btn-inline:hover {
         transform: scale(1.1);
     }
@@ -559,25 +551,18 @@
     }
 
     .study-flashcard:hover {
-        transform: translateY(-4px) rotateY(10deg);
+        transform: translateY(-5px) rotateY(10deg);
         filter: drop-shadow(15px 5px 0 rgba(0, 0, 0, 0.75));
     }
 
     .study-action-btn:hover {
-        transform: translateY(-4px);
+        transform: translateY(-5px);
     }
-}
 
-.study-action-btn.star-btn.active {
-    background-color: #ffdd00;
-    border-color: #ffdd00;
-    color: var(--bg-primary);
-}
-
-.study-action-btn.check-btn.active {
-    background-color: #00CC00;
-    border-color: #00CC00;
-    color: var(--text-primary);
+    .stack-settings-button:hover {
+        background-color: var(--bg-tertiary);
+        transform: scale(1.05);
+    }
 }
 
 @media (min-width: 650px) {
@@ -585,39 +570,19 @@
         padding: 25px 50px;
     }
 
-    .stack-view-header {
-        margin-bottom: 40px;
-        padding: 20px 0;
-    }
-
-    .back-button {
+    .profile-button-placeholder {
         width: 50px;
         height: 50px;
-        font-size: 22px;
-    }
-
-    .logo-image {
-        width: 80px;
-    }
-
-    .logo-text {
-        font-size: 32px;
-    }
-
-    .profile-button {
-        width: 52px;
-        height: 52px;
-        font-size: 20px;
-    }
-
-    .profile-button-placeholder {
-        width: 52px;
-        height: 52px;
     }
 
     .stack-view-content {
         max-width: 700px;
     }
+
+    .stack-action-message {
+        font-size: 14px;
+    }
+
 
     .stack-actions {
         gap: 20px;
@@ -625,16 +590,15 @@
     }
 
     .stack-side-button {
-        width: 54px;
-        height: 54px;
-        border-radius: 12px;
+        width: 55px;
+        height: 55px;
+        border-radius: 10px;
         font-size: 22px;
     }
 
     .stack-card-large {
         width: 170px;
         height: 135px;
-        font-size: 34px;
         box-shadow: 0 10px 0 0 rgba(0, 0, 0, 0.3);
         margin-bottom: 0;
     }
@@ -653,11 +617,11 @@
     }
 
     .view-button {
-        padding: 16px;
+        padding: 15px;
         font-size: 22px;
-        gap: 12px;
+        gap: 10px;
         margin-bottom: 35px;
-        border-radius: 12px;
+        border-radius: 10px;
         max-width: 450px;
     }
 
@@ -707,8 +671,8 @@
     }
 
     .status-btn-inline {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
         font-size: 18px;
     }
 
@@ -749,56 +713,32 @@
         margin-bottom: 250px;
     }
 
-    .stack-view-header {
-        margin-bottom: 50px;
-    }
-
-    .back-button {
-        width: 56px;
-        height: 56px;
-        font-size: 24px;
-    }
-
-    .logo-image {
-        width: 90px;
-    }
-
-    .logo-text {
-        font-size: 36px;
-    }
-
-    .profile-button {
-        width: 56px;
-        height: 56px;
-        font-size: 24px;
-    }
-
     .profile-button-placeholder {
-        width: 56px;
-        height: 56px;
+        width: 55px;
+        height: 55px;
     }
 
     .stack-view-content {
         max-width: 800px;
     }
 
+
     .stack-actions {
-        gap: 24px;
+        gap: 25px;
         margin-bottom: 35px;
     }
 
     .stack-side-button {
         width: 60px;
         height: 60px;
-        border-radius: 14px;
+        border-radius: 15px;
         font-size: 24px;
     }
 
     .stack-card-large {
         width: 200px;
         height: 155px;
-        font-size: 40px;
-        box-shadow: 0 12px 0 0 rgba(0, 0, 0, 0.35);
+        box-shadow: 0 10px 0 0 rgba(0, 0, 0, 0.35);
         margin-bottom: 0;
     }
 
@@ -868,8 +808,8 @@
     }
 
     .status-btn-inline {
-        width: 46px;
-        height: 46px;
+        width: 45px;
+        height: 45px;
         font-size: 20px;
     }
 
@@ -889,7 +829,7 @@
         padding: 60px 50px;
         min-width: 750px;
         min-height: 400px;
-        border-radius: 24px;
+        border-radius: 25px;
     }
 
     .study-card-text {

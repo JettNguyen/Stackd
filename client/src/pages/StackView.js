@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUser,
   faGlasses,
   faFolder,
   faChevronLeft,
@@ -11,14 +10,15 @@ import {
   faCheck,
   faPenToSquare,
   faLink,
+  faCog,
+  faSignOutAlt,
+  faUsers,
+  faEye,
+  faTrash,
 } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
-import {
-  getSessionUsername,
-  getStackById,
-  getStackCardsByStackId,
-} from '../utils/mockData';
 import Breadcrumbs from '../components/Breadcrumbs';
+import Modal from '../components/Modal';
+import PageHeader from '../components/PageHeader';
 import { apiRequest } from '../utils/api';
 import './StackView.css';
 
@@ -34,18 +34,22 @@ const StackView = () => {
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [stack, setStack] = useState(null);
   const [stackCards, setStackCards] = useState([]);
+  const [role, setRole] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [actionMessage, setActionMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
-    const username = getSessionUsername();
-    if (!username) {
-      return;
-    }
-
     let isMounted = true;
 
     const loadStack = async () => {
+      if (isMounted) {
+        setIsLoading(true);
+      }
+
       try {
         const response = await apiRequest(`/stack/view?stack=${id}`);
         if (!isMounted) {
@@ -68,14 +72,33 @@ const StackView = () => {
             definition: card.back || card.definition || '',
           }))
         );
-      } catch {
-        if (!isMounted) {
-          return;
-        }
 
-        const fallbackStack = getStackById(id);
-        setStack(fallbackStack);
-        setStackCards(fallbackStack ? getStackCardsByStackId(fallbackStack.id) : []);
+        const backendStatusMap = {};
+        apiCards.forEach((card, index) => {
+          const cardId = card._id || card.id || index + 1;
+          if (card.status === 'review') {
+            backendStatusMap[cardId] = 'star';
+          }
+          if (card.status === 'mastered') {
+            backendStatusMap[cardId] = 'check';
+          }
+        });
+
+        setCardStatuses(backendStatusMap);
+        setRole(response?.role ?? null);
+        setUsers(Array.isArray(response?.users) ? response.users : []);
+      } catch (error) {
+        if (isMounted) {
+          setStack(null);
+          setStackCards([]);
+          setRole(null);
+          setUsers([]);
+          setCardStatuses({});
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
 
       setCurrentCardIndex(0);
@@ -208,6 +231,38 @@ const StackView = () => {
     toggleCardStatus(cardId, 'check');
   };
 
+  const handleUnavailableAction = (label) => {
+    setActionMessage(`${label} will be available once stack action routes are added.`);
+    setTimeout(() => {
+      setActionMessage('');
+    }, 2000);
+  };
+
+  const isOwner = role === 'owner';
+  const canEdit = role === 'owner' || role === 'editor';
+  const isMember = Boolean(role);
+
+  if (isLoading) {
+    return (
+      <div className="stack-view-page">
+        <PageHeader showBack showProfile />
+
+        <div className="stack-view-content">
+          <Breadcrumbs
+            items={[
+              { label: 'Home', to: '/home' },
+              { label: 'Stack' },
+            ]}
+          />
+          <div className="stack-view-loading" role="status" aria-live="polite">
+            <div className="stack-view-loading-spinner"></div>
+            <p>Loading stack...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!stack) {
     return (
       <div className="stack-view-page">
@@ -228,33 +283,15 @@ const StackView = () => {
 
   return (
     <div className="stack-view-page">
-      <header className="stack-view-header">
-        <button type="button" className="back-button" onClick={handleBack}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-
-        {!isStudyMode ? (
-          <button type="button" className="profile-button" onClick={() => navigate('/profile')}>
-            <FontAwesomeIcon icon={faUser} />
-          </button>
-        ) : (
-          <div className="profile-button-placeholder"></div>
-        )}
-      </header>
-
-      <Breadcrumbs
-        items={[
-          { label: 'Home', to: '/home' },
-          { label: stack.name || 'Stack' },
-        ]}
-      />
+      <PageHeader showBack onBack={handleBack} showProfile={!isStudyMode} />
 
       <div className="stack-view-content">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/home' },
+            { label: stack.name || 'Stack' },
+          ]}
+        />
         {!isStudyMode ? (
           <div className="stack-browse-mode">
             <div className="stack-actions">
@@ -275,14 +312,18 @@ const StackView = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="stack-side-button stack-side-button-edit"
-                onClick={handleEdit}
-                aria-label="Edit stack"
-              >
-                <FontAwesomeIcon icon={faPenToSquare} />
-              </button>
+              {canEdit ? (
+                <button
+                  type="button"
+                  className="stack-side-button stack-side-button-edit"
+                  onClick={handleEdit}
+                  aria-label="Edit stack"
+                >
+                  <FontAwesomeIcon icon={faPenToSquare} />
+                </button>
+              ) : (
+                <div className="profile-button-placeholder"></div>
+              )}
             </div>
 
             {isLinkCopied && (
@@ -299,14 +340,28 @@ const StackView = () => {
               <div className="info-item">
                 <span>{stackCards.length} Cards</span>
               </div>
+              <div className="info-item">
+                <span>{role ? `Role: ${role}` : 'Role: guest'}</span>
+              </div>
             </div>
 
             <div className="stack-action-buttons">
               <button type="button" className="view-button" onClick={handleStudy}>
                 <FontAwesomeIcon icon={faGlasses} />
-                <span>view</span>
+                <span>Study</span>
+              </button>
+
+              <button
+                type="button"
+                className="stack-settings-button"
+                onClick={() => setIsSettingsOpen(true)}
+                aria-label="Stack settings"
+              >
+                <FontAwesomeIcon icon={faCog} />
               </button>
             </div>
+
+            {actionMessage && <p className="stack-action-message">{actionMessage}</p>}
 
             <div className="flashcards-list">
               <div className="flashcards-header">
@@ -422,6 +477,114 @@ const StackView = () => {
           </div>
         )}
       </div>
+
+      <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Stack Settings">
+        {/* Membership Section */}
+        <div className="modal-section">
+          <h3 className="modal-section-title">Membership</h3>
+          <button
+            type="button"
+            className="modal-option-button"
+            onClick={() => {
+              handleUnavailableAction(isMember ? 'Leave stack' : 'Join stack');
+              setIsSettingsOpen(false);
+            }}
+          >
+            <div className="modal-option-icon">
+              <FontAwesomeIcon icon={faSignOutAlt} />
+            </div>
+            <span className="modal-option-text">{isMember ? 'Leave Stack' : 'Join Stack'}</span>
+          </button>
+        </div>
+
+        {/* Edit Section */}
+        {canEdit && (
+          <div className="modal-section">
+            <h3 className="modal-section-title">Editing</h3>
+            <button
+              type="button"
+              className="modal-option-button"
+              onClick={() => {
+                handleEdit();
+                setIsSettingsOpen(false);
+              }}
+            >
+              <div className="modal-option-icon">
+                <FontAwesomeIcon icon={faPenToSquare} />
+              </div>
+              <span className="modal-option-text">Edit Stack Info</span>
+            </button>
+          </div>
+        )}
+
+        {/* Owner Section */}
+        {isOwner && (
+          <div className="modal-section">
+            <h3 className="modal-section-title">Administration</h3>
+            <button
+              type="button"
+              className="modal-option-button"
+              onClick={() => {
+                handleUnavailableAction('Manage users');
+                setIsSettingsOpen(false);
+              }}
+            >
+              <div className="modal-option-icon">
+                <FontAwesomeIcon icon={faUsers} />
+              </div>
+              <span className="modal-option-text">Add/Remove Users</span>
+            </button>
+            <button
+              type="button"
+              className="modal-option-button"
+              onClick={() => {
+                handleUnavailableAction('Toggle visibility');
+                setIsSettingsOpen(false);
+              }}
+            >
+              <div className="modal-option-icon">
+                <FontAwesomeIcon icon={faEye} />
+              </div>
+              <span className="modal-option-text">Toggle Visibility</span>
+            </button>
+          </div>
+        )}
+
+        {/* Danger Zone */}
+        {isOwner && (
+          <div className="modal-section modal-danger-section">
+            <h3 className="modal-section-title">Danger Zone</h3>
+            <button
+              type="button"
+              className="modal-option-button"
+              onClick={() => {
+                handleUnavailableAction('Delete stack');
+                setIsSettingsOpen(false);
+              }}
+            >
+              <div className="modal-option-icon">
+                <FontAwesomeIcon icon={faTrash} />
+              </div>
+              <span className="modal-option-text">Delete Stack</span>
+            </button>
+          </div>
+        )}
+
+        {/* Members List */}
+        {isOwner && users.length > 0 && (
+          <div className="modal-section">
+            <h3 className="modal-section-title">Stack Members ({users.length})</h3>
+            <div className="modal-members-list">
+              {users.map((member) => (
+                <div key={`${member.accountId}-${member.username}`} className="modal-member-chip">
+                  <span className="modal-member-name">{member.username}</span>
+                  <span className="modal-member-role">{member.role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

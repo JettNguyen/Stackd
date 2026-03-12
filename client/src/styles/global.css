@@ -1,7 +1,12 @@
-:root {
+﻿:root {
   --color-primary: #ee5500;
   --color-primary-dark: #cc4400;
   --color-secondary: #005add;
+  --color-secondary-dark: #0041aa;
+  --color-star: #ffdd00;
+  --color-success: #00cc00;
+  --color-danger: #df3636;
+  --color-danger-dark: #b22c2c;
   --stack-middle: #883000;
   --stack-back: #442200;
 
@@ -9,9 +14,15 @@
   --bg-secondary: #2f2f2f;
   --bg-tertiary: #3a3a3a;
   --bg-card: #555555;
+  --bg-overlay-soft: rgba(85, 85, 85, 0.25);
+  --bg-overlay-mid: rgba(85, 85, 85, 0.35);
+  --bg-overlay-strong: rgba(85, 85, 85, 0.5);
 
   --text-primary: #e0e0e0;
   --text-secondary: #aaaaaa;
+  --text-on-success: #a4f5b2;
+  --border-muted: #6a6a6a;
+  --bg-success: #2d5a3d;
 
   --font-sans: 'Lexend Deca', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -27,6 +38,7 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-gutter: stable;
 }
 
 body {

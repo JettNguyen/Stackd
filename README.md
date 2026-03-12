@@ -1,5 +1,9 @@
 # Stackd
 
+<p align='center'>
+    <img src="/client/src/assets/logo.png" width="140"/>
+</p>
+
 A web app custom made for UF students to store and study flashcards.
 
 ## Project Overview
@@ -12,25 +16,25 @@ A web app custom made for UF students to store and study flashcards.
 
 University of Florida students in classes that require memorization of concepts/vocabulary.
 
-## Getting Started
+## Dev Quick Start
 
-### Install Dependencies
+[*ensure you have the* ```.env``` *file in* ```/server```]
+
+### Install Dependencies & Run
+
+In terminal 1:
 
 ```bash
 cd server
 npm install
+npm run dev
 ```
 
+In terminal 2:
+
 ```bash
-cd ../client
+cd client
 npm install
-```
-
-### Run the frontend
-
-in ```client``` run
-
-```bash
 npm run dev
 ```
 

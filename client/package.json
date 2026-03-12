@@ -2,6 +2,7 @@
   "name": "client-v2",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://jettnguyen.github.io/Stackd",
   "scripts": {
     "dev": "react-scripts start",
     "build": "react-scripts build",

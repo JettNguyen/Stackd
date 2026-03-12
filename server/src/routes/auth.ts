@@ -14,7 +14,10 @@ router.post('/register', [], register, errorHandler)
 // POST at path: http://localhost:8080/auth/login
 router.post('/login', [], login, errorHandler)
 
-// GET at path: http://localhost:8080/auth/login-with-token
+// GET at path: http://localhost:8080/auth/login
+router.get('/login', [checkBearerToken], loginWithToken, errorHandler)
+
+// Backward-compatible alias for older client code.
 router.get('/login-with-token', [checkBearerToken], loginWithToken, errorHandler)
 
 export default router

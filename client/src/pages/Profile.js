@@ -1,17 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faFolder, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
-import {
-  getPublicProfileData,
-  normalizeUsersForProfile,
-  saveUsers,
-} from '../utils/mockData';
+import { faArrowLeft, faArrowRight, faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
+import PageHeader from '../components/PageHeader';
 import { apiRequest, clearAuthToken } from '../utils/api';
 import './Home.css';
 import './Profile.css';
+
+const getCollapsedCardCount = () => {
+  if (typeof window === 'undefined') {
+    return 3;
+  }
+
+  if (window.innerWidth >= 1250) {
+    return 7;
+  }
+
+  if (window.innerWidth >= 650) {
+    return 5;
+  }
+
+  return 3;
+};
 
 const formatDate = (value) => {
   const parsed = new Date(value);
@@ -28,19 +39,24 @@ const formatDate = (value) => {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { username: routeUsername } = useParams();
-  const [users, setUsers] = useState([]);
-  const [sessionUsername, setSessionUsername] = useState('');
-  const [form, setForm] = useState({
-    displayName: '',
-    bio: '',
-    major: '',
-  });
-  const [publicData, setPublicData] = useState({ classes: [], stacks: [] });
-  const [editingField, setEditingField] = useState('');
+  const [profileData, setProfileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [feedback, setFeedback] = useState('');
   const [showMoreClasses, setShowMoreClasses] = useState(false);
   const [showMoreStacks, setShowMoreStacks] = useState(false);
+  const [collapsedCardCount, setCollapsedCardCount] = useState(getCollapsedCardCount);
+
+  useEffect(() => {
+    const updateCollapsedCardCount = () => {
+      setCollapsedCardCount(getCollapsedCardCount());
+    };
+
+    window.addEventListener('resize', updateCollapsedCardCount);
+
+    return () => {
+      window.removeEventListener('resize', updateCollapsedCardCount);
+    };
+  }, []);
 
   useEffect(() => {
     if (feedback) {
@@ -52,136 +68,71 @@ const Profile = () => {
   }, [feedback]);
 
   useEffect(() => {
-    const normalizedUsers = normalizeUsersForProfile();
-    setUsers(normalizedUsers);
-
-    try {
-      const session = JSON.parse(localStorage.getItem('stackd_mock_session') || '{}');
-      setSessionUsername(session.username || '');
-    } catch {
-      setSessionUsername('');
-    }
-  }, [routeUsername]);
-
-  useEffect(() => {
-    if (!sessionUsername) {
-      return;
-    }
-
     let isMounted = true;
 
-    const syncAccount = async () => {
+    const fetchProfileData = async () => {
       try {
-        const response = await apiRequest('/account/user');
-        const account = response?.data;
-        if (!account || !isMounted) {
+        setIsLoading(true);
+        const token = localStorage.getItem('stackd_auth_token');
+
+        if (!token) {
+          if (isMounted) {
+            setIsLoading(false);
+          }
           return;
         }
 
-        setUsers((prev) => {
-          const exists = prev.some(
-            (user) => user.username.toLowerCase() === String(account.username).toLowerCase()
-          );
+        const response = await apiRequest('/account/user');
 
-          const next = exists
-            ? prev
-            : [
-                ...prev,
-                {
-                  email: account.email || '',
-                  username: account.username,
-                  password: '',
-                  displayName: account.username,
-                  bio: '',
-                  major: '',
-                  joinedAt: account.createdAt || new Date().toISOString(),
-                },
-              ];
+        if (!isMounted) return;
 
-          saveUsers(next);
-          return next;
-        });
-      } catch {
-        // Keep local profile fallback when backend profile fields are unavailable.
+        if (response?.data && Array.isArray(response?.classes) && Array.isArray(response?.stacks)) {
+          setProfileData({
+            account: response.data,
+            classes: response.classes,
+            stacks: response.stacks,
+          });
+        } else {
+          setFeedback('Profile data incomplete.');
+        }
+      } catch (error) {
+        if (isMounted) {
+          setFeedback('Failed to load profile. Please sign in again.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    syncAccount();
+    fetchProfileData();
 
     return () => {
       isMounted = false;
     };
-  }, [sessionUsername]);
-
-  const profileUsername = routeUsername || sessionUsername;
-
-  useEffect(() => {
-    if (!profileUsername) {
-      setPublicData({ classes: [], stacks: [] });
-      return;
-    }
-
-    setPublicData(getPublicProfileData(profileUsername));
-  }, [profileUsername]);
-
-  const activeUser = useMemo(
-    () => users.find((user) => user.username.toLowerCase() === profileUsername.toLowerCase()),
-    [users, profileUsername]
-  );
-
-  const isOwner = Boolean(
-    activeUser &&
-      sessionUsername &&
-      activeUser.username.toLowerCase() === sessionUsername.toLowerCase()
-  );
-
-  useEffect(() => {
-    if (!activeUser) {
-      return;
-    }
-
-    setForm({
-      displayName: activeUser.displayName,
-      bio: activeUser.bio,
-      major: activeUser.major,
-    });
-  }, [activeUser]);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('stackd_mock_session');
+    localStorage.removeItem('stackd_auth_token');
     clearAuthToken();
     navigate('/', { replace: true });
   };
 
-  const handleSaveField = (field) => {
-    if (!activeUser) {
-      return;
-    }
+  if (isLoading) {
+    return (
+      <div className="profile-page">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/home' },
+            { label: 'Profile' },
+          ]}
+        />
+      </div>
+    );
+  }
 
-    const nextValue = form[field]?.trim() ?? '';
-    if (field === 'displayName' && !nextValue) {
-      setFeedback('Display name is required.');
-      return;
-    }
-
-    const updatedUsers = users.map((user) => {
-      if (user.username.toLowerCase() !== activeUser.username.toLowerCase()) {
-        return user;
-      }
-
-      return {
-        ...user,
-        [field]: nextValue,
-      };
-    });
-
-    setUsers(updatedUsers);
-    saveUsers(updatedUsers);
-    setEditingField('');
-    setFeedback('Profile updated.');
-  };
-
-  if (!activeUser) {
+  if (!profileData) {
     return (
       <div className="profile-page">
         <Breadcrumbs
@@ -191,174 +142,55 @@ const Profile = () => {
           ]}
         />
         <h1>Profile not found</h1>
-        <p className="profile-empty">No account matches this profile URL.</p>
+        <p className="profile-empty">Sign in to view your profile.</p>
         <div className="profile-actions">
           <button type="button" onClick={() => navigate('/home')}>
             Back to Home
           </button>
-          <button type="button" onClick={handleLogout}>
-            Log out
+          <button type="button" style={{ backgroundColor: 'var(--accent-color)' }} onClick={() => navigate('/login')}>
+            Sign In
           </button>
         </div>
       </div>
     );
   }
 
-  const profileUrl = `${window.location.origin}/profile/${activeUser.username}`;
-  const classCards = publicData.classes.map((item) => ({
-    ...item,
-    stackCount: publicData.stacks.filter((stack) => String(stack.classId) === String(item.id)).length,
-  }));
+  const { account, classes = [], stacks = [] } = profileData;
+  const profileUrl = `${window.location.origin}/profile/${account.username}`;
+  const shouldShowMoreClasses = classes.length > collapsedCardCount;
+  const shouldShowMoreStacks = stacks.length > collapsedCardCount;
+  const visibleClasses = shouldShowMoreClasses && !showMoreClasses ? classes.slice(0, collapsedCardCount) : classes;
+  const visibleStacks = shouldShowMoreStacks && !showMoreStacks ? stacks.slice(0, collapsedCardCount) : stacks;
 
   return (
     <div className="profile-page">
-      <header className="class-view-header">
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-      </header>
+      <PageHeader showBack />
 
       <Breadcrumbs
         items={[
           { label: 'Home', to: '/home' },
-          { label: activeUser.username.toLowerCase() === sessionUsername.toLowerCase() ? 'My Profile' : activeUser.username },
+          { label: 'My Profile' },
         ]}
       />
 
       <div className="profile-headline">
-        <h1>{activeUser.displayName}</h1>
-        <p>@{activeUser.username}</p>
+        <h1>{account.username}</h1>
+        <p>@{account.username}</p>
       </div>
 
       <div className="profile-public-card">
-        <h2>Public Profile</h2>
-        <p className="profile-meta">Joined {formatDate(activeUser.joinedAt)}</p>
+        <h2>Profile</h2>
+        <p className="profile-meta">Joined {formatDate(account.createdAt)}</p>
 
         <div className="profile-field">
-          <div className="profile-field-header">
-            <span>Display Name</span>
-            {isOwner && editingField !== 'displayName' && (
-              <button type="button" onClick={() => setEditingField('displayName')}>
-                Edit
-              </button>
-            )}
-          </div>
-          {isOwner && editingField === 'displayName' ? (
-            <div className="profile-inline-edit">
-              <input
-                type="text"
-                value={form.displayName}
-                onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))}
-              />
-              <div className="profile-inline-actions">
-                <button type="button" className="profile-save-button" onClick={() => handleSaveField('displayName')}>
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingField('');
-                    setFeedback('');
-                    setForm((prev) => ({ ...prev, displayName: activeUser.displayName }));
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p>{activeUser.displayName || activeUser.username}</p>
-          )}
-        </div>
-
-        <div className="profile-field">
-          <div className="profile-field-header">
-            <span>Bio</span>
-            {isOwner && editingField !== 'bio' && (
-              <button type="button" onClick={() => setEditingField('bio')}>
-                Edit
-              </button>
-            )}
-          </div>
-          {isOwner && editingField === 'bio' ? (
-            <div className="profile-inline-edit">
-              <textarea
-                rows="3"
-                value={form.bio}
-                onChange={(event) => setForm((prev) => ({ ...prev, bio: event.target.value }))}
-              />
-              <div className="profile-inline-actions">
-                <button type="button" className="profile-save-button" onClick={() => handleSaveField('bio')}>
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingField('');
-                    setFeedback('');
-                    setForm((prev) => ({ ...prev, bio: activeUser.bio }));
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p>{activeUser.bio || 'No bio yet.'}</p>
-          )}
-        </div>
-
-        <div className="profile-field">
-          <div className="profile-field-header">
-            <span>Major</span>
-            {isOwner && editingField !== 'major' && (
-              <button type="button" onClick={() => setEditingField('major')}>
-                Edit
-              </button>
-            )}
-          </div>
-          {isOwner && editingField === 'major' ? (
-            <div className="profile-inline-edit">
-              <input
-                type="text"
-                value={form.major}
-                onChange={(event) => setForm((prev) => ({ ...prev, major: event.target.value }))}
-              />
-              <div className="profile-inline-actions">
-                <button type="button" className="profile-save-button" onClick={() => handleSaveField('major')}>
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingField('');
-                    setFeedback('');
-                    setForm((prev) => ({ ...prev, major: activeUser.major }));
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p>{activeUser.major || 'Not set'}</p>
-          )}
-        </div>
-
-        <div className="profile-field">
-          <span>Classes Created</span>
-          {classCards.length > 0 ? (
+          <span>Your Classes</span>
+          {classes.length > 0 ? (
             <div className={`cards-grid profile-cards-grid ${showMoreClasses ? 'show-all' : ''}`}>
-              {classCards.map((item) => (
+              {visibleClasses.map((item) => (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="class-card"
-                  onClick={() => navigate(`/class/${item.id}`)}
+                  onClick={() => navigate(`/class/${item._id}`)}
                 >
                   <div className="folder-wrapper">
                     <FontAwesomeIcon icon={faFolder} className="folder-icon" />
@@ -367,12 +199,12 @@ const Profile = () => {
                   <span className="class-name">{item.name}</span>
                 </div>
               ))}
-                {classCards.length > 5 && (
-                  <button className="see-more-button" onClick={() => setShowMoreClasses((prev) => !prev)}>
-                    <FontAwesomeIcon icon={showMoreClasses ? faArrowLeft : faArrowRight} className="arrow-icon" />
-                    <span>{showMoreClasses ? 'see less' : 'see more'}</span>
-                  </button>
-                )}
+              {shouldShowMoreClasses && (
+                <button className="see-more-button" onClick={() => setShowMoreClasses((prev) => !prev)}>
+                  <FontAwesomeIcon icon={showMoreClasses ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                  <span>{showMoreClasses ? 'see less' : 'see more'}</span>
+                </button>
+              )}
             </div>
           ) : (
             <p className="profile-empty">None yet</p>
@@ -380,14 +212,14 @@ const Profile = () => {
         </div>
 
         <div className="profile-field">
-          <span>Stacks Created</span>
-          {publicData.stacks.length > 0 ? (
+          <span>Your Stacks</span>
+          {stacks.length > 0 ? (
             <div className={`cards-grid profile-cards-grid ${showMoreStacks ? 'show-all' : ''}`}>
-              {publicData.stacks.map((item) => (
+              {visibleStacks.map((item) => (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="stack-card"
-                  onClick={() => navigate(`/stack/${item.id}`)}
+                  onClick={() => navigate(`/stack/${item._id}`)}
                 >
                   <div className="stack-layer-back"></div>
                   <div className="stack-layer-middle"></div>
@@ -399,7 +231,7 @@ const Profile = () => {
                   </div>
                 </div>
               ))}
-              {publicData.stacks.length > 5 && (
+              {shouldShowMoreStacks && (
                 <button className="see-more-button" onClick={() => setShowMoreStacks((prev) => !prev)}>
                   <FontAwesomeIcon icon={showMoreStacks ? faArrowLeft : faArrowRight} className="arrow-icon" />
                   <span>{showMoreStacks ? 'see less' : 'see more'}</span>
@@ -421,12 +253,7 @@ const Profile = () => {
         <button type="button" onClick={() => navigate('/home')}>
           Back to Home
         </button>
-        {sessionUsername && sessionUsername.toLowerCase() !== activeUser.username.toLowerCase() && (
-          <button type="button" onClick={() => navigate(`/profile/${sessionUsername}`)}>
-            My Profile
-          </button>
-        )}
-        <button type="button" onClick={handleLogout}>
+        <button type="button" className="profile-logout-button" onClick={handleLogout}>
           Log out
         </button>
       </div>

@@ -1,79 +1,8 @@
 .new-stack-page {
 	min-height: 100vh;
 	background-color: var(--bg-primary);
-	padding: 25px 20px 250px;
+	padding: 25px 20px 40px;
 	color: var(--text-primary);
-}
-
-.new-stack-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 10px;
-	padding: 5px 0;
-}
-
-.back-button {
-	width: 50px;
-	height: 50px;
-	border-radius: 10px;
-	background-color: transparent;
-	border: none;
-	color: var(--text-primary);
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 24px;
-	transition: background-color 0.25s ease-in-out;
-}
-
-.back-button:active {
-	background-color: var(--bg-card);
-}
-
-.logo {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 5px;
-	flex: 1;
-	width: 100%;
-}
-
-.logo-image {
-	width: 75px;
-	height: auto;
-	object-fit: contain;
-	max-width: 100%;
-	display: block;
-	margin: -15px -15px -20px;
-}
-
-.logo-text {
-	font-size: 28px;
-	font-weight: 700;
-	color: var(--color-primary);
-	margin: 0;
-}
-
-.profile-button {
-	width: 50px;
-	height: 50px;
-	border-radius: 999px;
-	background-color: var(--color-secondary);
-	border: none;
-	color: var(--text-primary);
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 24px;
-	transition: transform 0.25s ease-in-out;
-}
-
-.profile-button:active {
-	transform: translateY(1px);
 }
 
 .new-stack-content {
@@ -125,7 +54,7 @@
 	right: 0;
 	bottom: 0;
 	background-color: var(--color-primary);
-	border-radius: 12px;
+	border-radius: 10px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -135,7 +64,7 @@
 }
 
 .new-stack-card span {
-	font-size: 20px;
+	font-size: clamp(12px, 3vw, 18px);
 	font-weight: 400;
 	color: var(--text-primary);
 	line-height: 1.2;
@@ -159,14 +88,14 @@
 	color: var(--color-primary);
 	font-size: 14px;
 	margin-top: -10px;
-	margin-bottom: 18px;
+	margin-bottom: 20px;
 }
 
 .stack-name-input {
 	width: 100%;
 	padding: 10px 15px;
 	border-radius: 15px;
-	border: 3px solid var(--text-secondary);
+	border: 2px solid var(--text-secondary);
 	background-color: var(--bg-card);
 	color: var(--text-primary);
 	font-size: 16px;
@@ -215,6 +144,16 @@
 	margin-top: 15px;
 }
 
+.import-steps {
+	margin: 0 0 15px 0;
+	padding-left: 20px;
+	display: grid;
+	gap: 5px;
+	font-size: 12px;
+	color: var(--text-secondary);
+	line-height: 1.5;
+}
+
 .import-actions {
 	display: flex;
 	align-items: center;
@@ -222,9 +161,16 @@
 	margin-top: 15px;
 }
 
+.import-feedback {
+	margin: 10px 0 0;
+	text-align: center;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-primary);
+}
+
 .import-button {
 	padding: 10px 20px;
-	padding-bottom: 12px;
 	border-radius: 15px;
 	border: none;
 	background-color: var(--color-primary);
@@ -236,7 +182,6 @@
 }
 
 .import-button:active {
-	transform: translateY(2px);
 	background-color: var(--color-primary-dark);
 }
 
@@ -245,7 +190,7 @@
 	min-height: 120px;
 	padding: 15px;
 	border-radius: 15px;
-	border: 2px solid #6a6a6a;
+	border: 2px solid var(--border-muted);
 	background-color: var(--bg-card);
 	color: var(--text-primary);
 	font-size: 12px;
@@ -356,25 +301,16 @@
 	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out, color 0.25s ease-in-out, border-color 0.25s ease-in-out, opacity 0.25s ease-in-out;
 }
 
-@media (hover: hover) and (pointer: fine) {
-	.flashcard-delete:hover {
-		filter: opacity(100%);
-		background-color: #e24020;
-		border-color: #e24020;
-		color: var(--text-primary);
-	}
-}
-
 .flashcard-delete:active {
 	filter: opacity(100%);
 	transform: translateY(2px);
-	background-color: #c83018;
-	border-color: #c83018;
+	background-color: var(--color-danger-dark);
+	border-color: var(--color-danger-dark);
 	color: var(--text-primary);
 }
 
 .flashcard-divider {
-	height: 2px;
+	height: 0px;
 	background-color: var(--text-secondary);
 	opacity: 0.5;
 	margin: 15px 0 0;
@@ -385,7 +321,7 @@
 	min-height: 90px;
 	border-radius: 10px;
 	border: 2px dashed var(--text-secondary);
-	background-color: rgba(85, 85, 85, 0.25);
+	background-color: var(--bg-overlay-soft);
 	color: var(--color-secondary);
 	display: flex;
 	flex-direction: column;
@@ -394,7 +330,7 @@
 	gap: 10px;
 	font-size: 24px;
 	cursor: pointer;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+	filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
 	transition: border-color 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
 }
 
@@ -404,79 +340,38 @@
 }
 
 .add-card-button:active {
-	transform: translateY(2px);
+	border-color: var(--color-secondary);
+	background-color: var(--bg-overlay-mid);
 }
 
-@media (hover: hover) and (pointer: fine) {
-	.add-card-button:hover {
-		transform: translateY(-2px);
-		border-color: var(--color-secondary);
-		background-color: rgba(85, 85, 85, 0.35);
-	}
-}
-
-.new-stack-actions-bar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	padding: 20px;
-	background: linear-gradient(180deg, rgba(26, 26, 26, 0) 0%, rgba(26, 26, 26, 0.9) 40%, rgba(26, 26, 26, 1) 100%);
-	z-index: 1000;
+.save-stack-button:active {
+	background-color: var(--color-primary-dark);
 }
 
 .save-stack-button {
 	width: 100%;
-	height: 65px;
+	min-height: 65px;
+	margin-top: 25px;
+	position: sticky;
+	bottom: 20px;
+	z-index: 20;
 	border-radius: 15px;
 	border: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	background-color: var(--color-primary);
 	color: var(--text-primary);
 	font-size: 26px;
 	font-weight: 700;
 	cursor: pointer;
-	filter: drop-shadow(0 0 10px rgb(0, 0, 0));
+	filter: drop-shadow(0 0 5px rgb(0, 0, 0));
 	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
-}
-
-.save-stack-button:active {
-	transform: translateY(2px);
-	background-color: var(--color-primary-dark);
-}
-
-@media (hover: hover) and (pointer: fine) {
-	.import-button:hover,
-	.save-stack-button:hover {
-		transform: translateY(-2px);
-	}
 }
 
 @media (min-width: 650px) {
 	.new-stack-page {
-		padding: 25px 50px 170px;
-	}
-
-	.new-stack-header {
-		margin-bottom: 40px;
-		padding: 20px 0;
-	}
-
-	.back-button {
-		font-size: 22px;
-	}
-
-	.logo-image {
-		width: 80px;
-	}
-
-	.logo-text {
-		font-size: 32px;
-	}
-
-	.profile-button {
-		width: 52px;
-		height: 52px;
-		font-size: 20px;
+		padding: 25px 50px 50px;
 	}
 
 	.new-stack-content {
@@ -486,10 +381,6 @@
 	.new-stack-card {
 		width: 190px;
 		height: 140px;
-	}
-
-	.new-stack-card span {
-		font-size: 22px;
 	}
 
 	.stack-name-row {
@@ -538,19 +429,7 @@
 
 @media (min-width: 1250px) {
 	.new-stack-page {
-		padding: 30px 80px 190px;
-	}
-
-	.new-stack-header {
-		margin-bottom: 50px;
-	}
-
-	.logo-image {
-		width: 90px;
-	}
-
-	.logo-text {
-		font-size: 36px;
+		padding: 30px 80px 60px;
 	}
 
 	.new-stack-content {
@@ -560,10 +439,6 @@
 	.new-stack-card {
 		width: 220px;
 		height: 160px;
-	}
-
-	.new-stack-card span {
-		font-size: 24px;
 	}
 
 	.stack-name-row {
@@ -580,54 +455,23 @@
 	}
 }
 
-.modal-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.6);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 2000;
-}
-
-.modal-content {
-	background-color: var(--bg-secondary);
-	border-radius: 20px;
-	padding: 30px;
-	max-width: 500px;
-	width: 90%;
-	max-height: 80vh;
-	overflow-y: auto;
-	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-.modal-title {
-	font-size: 24px;
-	font-weight: 700;
-	color: var(--text-primary);
-	margin: 0 0 10px;
-}
-
-.modal-subtitle {
+.new-stack-modal-subtitle {
 	font-size: 14px;
 	color: var(--text-secondary);
 	margin: 0 0 20px;
 }
 
-.modal-classes-grid {
+.new-stack-modal-classes-grid {
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 10px;
 	margin-bottom: 25px;
 }
 
-.modal-class-button {
+.new-stack-modal-class-button {
 	padding: 15px 20px;
-	border-radius: 12px;
-	border: 2px solid #6a6a6a;
+	border-radius: 10px;
+	border: 2px solid var(--border-muted);
 	background-color: var(--bg-card);
 	color: var(--text-primary);
 	cursor: pointer;
@@ -637,35 +481,27 @@
 	text-align: left;
 }
 
-.modal-class-button:active {
-	transform: translateY(2px);
+.new-stack-modal-class-button:active {
 	background-color: var(--color-primary);
 	border-color: var(--color-primary);
 }
 
-@media (hover: hover) and (pointer: fine) {
-	.modal-class-button:hover {
-		border-color: var(--color-primary);
-		background-color: rgba(238, 85, 0, 0.1);
-	}
-}
-
-.modal-class-button.selected {
+.new-stack-modal-class-button.selected {
 	background-color: var(--color-primary);
 	border-color: var(--color-primary);
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
-.modal-actions {
+.new-stack-modal-actions {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 12px;
+	gap: 10px;
 }
 
-.modal-cancel-button,
-.modal-save-button {
-	padding: 12px 20px;
-	border-radius: 12px;
+.new-stack-modal-cancel-button,
+.new-stack-modal-save-button {
+	padding: 10px 20px;
+	border-radius: 10px;
 	border: none;
 	font-size: 16px;
 	font-weight: 700;
@@ -673,32 +509,51 @@
 	transition: all 0.25s ease-in-out;
 }
 
-.modal-cancel-button {
+.new-stack-modal-cancel-button {
 	background-color: var(--bg-card);
 	color: var(--text-primary);
 }
 
-.modal-cancel-button:active {
-	transform: translateY(2px);
-	background-color: #3f3f3f;
+.new-stack-modal-cancel-button:active {
+	background-color: var(--bg-tertiary);
 }
 
-.modal-save-button {
+.new-stack-modal-save-button {
 	background-color: var(--color-primary);
-	color: #ffffff;
+	color: var(--text-primary);
 }
 
-.modal-save-button:active {
-	transform: translateY(2px);
+.new-stack-modal-save-button:active {
 	background-color: var(--color-primary-dark);
 }
 
 @media (hover: hover) and (pointer: fine) {
-	.modal-cancel-button:hover {
-		background-color: #3f3f3f;
+	.save-stack-button:hover {
+		background-color: var(--color-primary-dark);
 	}
 
-	.modal-save-button:hover {
+	.flashcard-delete:hover {
+		filter: opacity(100%);
+		background-color: var(--color-danger);
+		border-color: var(--color-danger);
+		color: var(--text-primary);
+	}
+
+	.add-card-button:hover {
+		border-color: var(--color-secondary);
+		background-color: var(--bg-overlay-mid);
+	}
+
+	.new-stack-modal-class-button:hover {
+		border-color: var(--color-primary);
+		background-color: var(--color-primary-dark);
+	}
+
+	.new-stack-modal-cancel-button:hover {
+		background-color: var(--bg-tertiary);
+	}
+
+	.new-stack-modal-save-button:hover {
 		background-color: var(--color-primary-dark);
 	}
 }

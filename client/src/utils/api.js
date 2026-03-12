@@ -42,3 +42,24 @@ export const apiRequest = async (path, options = {}) => {
 
   return payload;
 };
+
+export const restoreSessionFromToken = async () => {
+  const token = getAuthToken();
+
+  if (!token) {
+    return null;
+  }
+
+  const payload = await apiRequest('/auth/login', {
+    method: 'GET',
+  });
+
+  const nextToken = payload?.token || '';
+  const account = payload?.data || null;
+
+  if (nextToken) {
+    setAuthToken(nextToken);
+  }
+
+  return account;
+};
