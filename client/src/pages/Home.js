@@ -77,7 +77,7 @@ const Home = () => {
         <div className="section-header">
           <h2>Your Classes</h2>
           <button className="add-button">
-            <FontAwesomeIcon icon={faPlus} />
+            <FontAwesomeIcon icon={faPlus} onClick={() => navigate('/class/new')}/>
           </button>
         </div>
         <div className={`cards-grid ${showMoreClasses ? 'show-all' : ''}`}>
