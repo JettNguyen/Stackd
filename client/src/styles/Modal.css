@@ -28,7 +28,7 @@
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.42);
     width: calc(100vw - 32px);
     max-width: 520px;
-    max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
     animation: slideUp 0.3s ease-out;
 }
@@ -123,11 +123,15 @@
     .modal-close-button:hover {
         color: var(--text-primary);
         background-color: var(--bg-card);
+        filter: brightness(0.98);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .modal-option-button:hover {
         background-color: var(--bg-tertiary);
         border-color: var(--text-secondary);
+        filter: brightness(0.98);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .modal-danger-section .modal-option-button:hover {
@@ -138,7 +142,17 @@
     .modal-option-button:disabled:hover {
         background-color: var(--bg-card);
         border-color: var(--bg-tertiary);
+        filter: none;
+        box-shadow: none;
     }
+}
+
+.modal-option-button:active,
+.modal-close-button:active {
+    background: var(--bg-overlay-mid);
+    filter: brightness(0.96);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    transform: scale(0.98);
 }
 
 .modal-option-icon {
@@ -205,7 +219,7 @@
     .modal-container {
         width: 88vw;
         max-width: 560px;
-        max-height: 86vh;
+        max-height: 86dvh;
     }
 }
 
@@ -213,7 +227,7 @@
     .modal-container {
         width: 620px;
         max-width: 620px;
-        max-height: 82vh;
+        max-height: 82dvh;
     }
 
     .modal-header {

@@ -38,6 +38,25 @@ npm install
 npm run dev
 ```
 
+Optional:
+
+For best experience, use Stackd in Progressive Web App (PWA) mode
+
+**iOS:**
+
+- Go to the website on an iPhone
+- Press the ```Share``` icon
+- Select ```Add to Home Screen```
+- Ensure ```Open as Web App``` is toggled "On"
+- Add
+
+**Android:**
+
+- Go to the website on an Andoid device
+- Click the three dots to open the browser menu
+- Select ```Add to home screen```
+- Press ```Install```
+
 ## Template
 
 This repo uses [BenElfenrick's MERN Stack Template](https://github.com/BenElferink/mern-template).

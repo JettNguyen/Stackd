@@ -1,5 +1,5 @@
 .profile-page {
-	min-height: 100vh;
+	min-height: 100dvh;
 	padding: 25px 20px 80px;
 	color: var(--text-primary);
 	background-color: var(--bg-primary);
@@ -21,6 +21,7 @@
 	background: var(--bg-secondary);
 	border-radius: 20px;
 	padding: 20px;
+	margin: 20px 0;
 	display: grid;
 	gap: 10px;
 	filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
@@ -186,7 +187,7 @@
 
 .profile-feedback-banner {
 	position: fixed;
-	top: 0;
+	top: env(safe-area-inset-top);
 	left: 0;
 	right: 0;
 	background: var(--bg-success);
@@ -228,6 +229,8 @@
 
 	.profile-actions button:hover {
 		background: var(--bg-overlay-soft);
+		filter: brightness(0.95);
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 	}
 
 	.profile-actions .profile-logout-button:hover {
@@ -249,13 +252,22 @@
 	.see-more-button:hover {
 		border-color: var(--color-secondary);
 		background-color: var(--bg-overlay-mid);
+		filter: brightness(0.95);
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 	}
+}
+
+.profile-actions button:active,
+.see-more-button:active {
+	background: var(--bg-overlay-mid);
+	filter: brightness(0.95);
+	box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+	transform: scale(0.95);
 }
 
 @media (min-width: 650px) {
 	.profile-page {
 		margin: 0 50px;
-		gap: 20px;
 	}
 
 	.profile-cards-grid {
@@ -265,7 +277,7 @@
 	}
 
 	.profile-headline h1 {
-		margin-top: -30px;
+		margin-top: -20px;
 		font-size: 38px;
 	}
 

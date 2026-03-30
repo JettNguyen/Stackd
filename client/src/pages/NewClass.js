@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronLeft, faUser, faFolder } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
+import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
+import Breadcrumbs from '../components/Breadcrumbs';
 import './NewClass.css';
 
 const NewClass = () => {
@@ -45,21 +45,12 @@ const NewClass = () => {
 
   return (
     <div className="new-class-page">
-      <header className="new-class-header">
-        <button className="back-button" onClick={handleBack}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-
-        <button className="profile-button" onClick={() => navigate('/profile')}>
-          <FontAwesomeIcon icon={faUser} />
-        </button>
-      </header>
-
+      <Breadcrumbs
+        items={[
+          { label: 'Home', to: '/home' },
+          { label: 'New Class' },
+        ]}
+      />
       <div className="new-class-content">
         <div className="class-preview">
           <div className="new-class-card">

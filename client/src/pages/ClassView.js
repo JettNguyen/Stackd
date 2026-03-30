@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import useDelayedSpinner from '../utils/useDelayedSpinner';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -28,6 +29,7 @@ const ClassView = () => {
   const [users, setUsers] = useState([]);
   const [actionMessage, setActionMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -134,18 +136,12 @@ const ClassView = () => {
   if (isLoading) {
     return (
       <div className="class-view-page">
-        <div className="class-view-content">
-          <Breadcrumbs
-            items={[
-              { label: 'Home', to: '/home' },
-              { label: 'Class' },
-            ]}
-          />
+        {isLoadingVisible && (
           <div className="class-view-loading" role="status" aria-live="polite">
             <div className="class-view-loading-spinner"></div>
             <p>Loading class...</p>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -171,7 +167,7 @@ const ClassView = () => {
 
   return (
     <div className="class-view-page">
-      <div className="class-view-content">
+      <div className="class-view-content content-appear">
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },

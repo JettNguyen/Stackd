@@ -1,5 +1,5 @@
 ﻿.class-view-page {
-	min-height: 100vh;
+	min-height: 100dvh;
 	background-color: var(--bg-primary);
 	padding: 25px 20px;
 	color: var(--text-primary);

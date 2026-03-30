@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import PageHeader from './components/PageHeader'
 import Home from './pages/Home'
@@ -24,20 +24,61 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
+const ScrollManager = () => {
+  const location = useLocation()
+  const navigationType = useNavigationType()
+
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem(`scroll:${location.key}`, String(window.scrollY))
+    }
+  }, [location.key])
+
+  useEffect(() => {
+    if (navigationType === 'POP') {
+      const saved = sessionStorage.getItem(`scroll:${location.key}`)
+      if (saved) {
+        const t = setTimeout(() => {
+          window.scrollTo({ top: parseInt(saved, 10), behavior: 'instant' })
+        }, 430)
+        return () => clearTimeout(t)
+      }
+    }
+    else {
+      const t = setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' })
+      }, 250)
+      return () => clearTimeout(t)
+    }
+  }, [location.key, navigationType])
+
+  return null
+}
+
 const GlobalHeader = () => {
   const location = useLocation()
-  const currentPath = location.pathname
+  const navigationType = useNavigationType()
+  const [displayPath, setDisplayPath] = useState(location.pathname)
 
-  if (currentPath === '/' || currentPath === '/login') {
+  useEffect(() => {
+    if (navigationType === 'POP') {
+      const t = setTimeout(() => setDisplayPath(location.pathname), 260)
+      return () => clearTimeout(t)
+    } else {
+      setDisplayPath(location.pathname)
+    }
+  }, [location.pathname, navigationType])
+
+  if (displayPath === '/' || displayPath === '/login') {
     return null
   }
 
-  const isHome = currentPath === '/home'
+  const isHome = displayPath === '/home'
 
   return (
     <PageHeader
-      showBack={!isHome}  // now Profile page has back button
-      showProfile={isHome || currentPath.startsWith('/stack') || currentPath.startsWith('/class')}
+      showBack={!isHome}
+      showProfile={isHome || displayPath.startsWith('/stack') || displayPath.startsWith('/class')}
     />
   )
 }
@@ -150,6 +191,7 @@ const App = () => {
 
   return (
     <Router>
+      <ScrollManager />
       <div className='App'>
         <GlobalHeader />
         <AnimatedRoutes />
