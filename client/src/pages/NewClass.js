@@ -14,16 +14,19 @@ const NewClass = () => {
   const [isStacksOpen, setIsStacksOpen] = useState(false);
   const [selectedStackIds, setSelectedStackIds] = useState([]);
   
-  const stacks = [
-    { id: 1, name: 'Midterm' },
-    { id: 2, name: 'Final'},
-    { id: 3, name: 'Module 5'},
-    { id: 4, name: 'Unit 6 Vocabulary'},
-    { id: 5, name: 'Module 4' },
-    { id: 6, name: 'Module 3'},
-    { id: 7, name: 'Module 1'},
-    { id: 8, name: 'Module 2'},
-  ];
+  const stacks = useMemo(
+    () => [
+      { id: 1, name: 'Midterm' },
+      { id: 2, name: 'Final' },
+      { id: 3, name: 'Module 5' },
+      { id: 4, name: 'Unit 6 Vocabulary' },
+      { id: 5, name: 'Module 4' },
+      { id: 6, name: 'Module 3' },
+      { id: 7, name: 'Module 1' },
+      { id: 8, name: 'Module 2' },
+    ],
+    []
+  );
 
   const selectedStacks = useMemo(
     () => stacks.filter((stack) => selectedStackIds.includes(stack.id)),
