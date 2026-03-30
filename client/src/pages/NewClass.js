@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Breadcrumbs from '../components/Breadcrumbs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronLeft, faUser, faFolder } from '@fortawesome/free-solid-svg-icons';
 import logo from '../assets/logo.png';
