@@ -1,4 +1,11 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import path from 'path'
+
+dotenv.config({
+  path: path.resolve(__dirname, '../../.env'),
+  override: true,
+  debug: true,
+})
 
 const ORIGIN = '*'
 const PORT = process.env.PORT || 8080

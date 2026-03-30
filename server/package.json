@@ -17,14 +17,14 @@
     "express": "^5.2.1",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.23.0"
+    "mongoose": "^9.3.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.3.5",
+    "@types/node": "^25.5.0",
     "typescript": "^5.9.3"
   }
 }
