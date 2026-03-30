@@ -44,6 +44,12 @@
     }
 }
 
+.stack-view-loading-delayed-placeholder {
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+}
+
 .stack-actions {
     display: flex;
     align-items: center;

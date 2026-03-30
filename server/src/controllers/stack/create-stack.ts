@@ -30,6 +30,7 @@ const create: RequestHandler = async (req, res, next) => {
 
     const { name, classId, cards } = req.body
 
+    // If classId provided, verify user is member
     if (classId) {
       const cls = await Class.findOne({
         _id: classId,
@@ -44,6 +45,7 @@ const create: RequestHandler = async (req, res, next) => {
       }
     }
 
+    // Create the stack
     const stack = await Stack.create({
       name: name.trim(),
       ...(classId ? { class: classId } : {}),
@@ -51,6 +53,7 @@ const create: RequestHandler = async (req, res, next) => {
       users: [{ account: uid, role: 'owner' }],
     })
 
+    // Create cards (skip fully empty ones)
     const cardDocs = (cards || [])
       .filter((c: any) => c.term?.trim() || c.definition?.trim())
       .map((c: any) => ({

@@ -18,8 +18,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
-import PageHeader from '../components/PageHeader';
 import { apiRequest } from '../utils/api';
+import useDelayedSpinner from '../utils/useDelayedSpinner';
 import './StackView.css';
 
 const StackView = () => {
@@ -38,6 +38,7 @@ const StackView = () => {
   const [users, setUsers] = useState([]);
   const [actionMessage, setActionMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const copyTimeoutRef = useRef(null);
@@ -120,16 +121,6 @@ const StackView = () => {
     };
   }, []);
 
-  const handleBack = () => {
-    if (isStudyMode) {
-      setIsStudyMode(false);
-      setCurrentCardIndex(0);
-      setShowDefinition(false);
-      return;
-    }
-
-    navigate(-1);
-  };
 
   const handleStudy = () => {
     setIsStudyMode(true);
@@ -245,8 +236,6 @@ const StackView = () => {
   if (isLoading) {
     return (
       <div className="stack-view-page">
-        <PageHeader showBack showProfile />
-
         <div className="stack-view-content">
           <Breadcrumbs
             items={[
@@ -254,10 +243,14 @@ const StackView = () => {
               { label: 'Stack' },
             ]}
           />
-          <div className="stack-view-loading" role="status" aria-live="polite">
-            <div className="stack-view-loading-spinner"></div>
-            <p>Loading stack...</p>
-          </div>
+          {isLoadingVisible ? (
+            <div className="stack-view-loading" role="status" aria-live="polite">
+              <div className="stack-view-loading-spinner"></div>
+              <p>Loading stack...</p>
+            </div>
+          ) : (
+            <div className="stack-view-loading-delayed-placeholder" aria-hidden="true" />
+          )}
         </div>
       </div>
     );
@@ -283,8 +276,6 @@ const StackView = () => {
 
   return (
     <div className="stack-view-page">
-      <PageHeader showBack onBack={handleBack} showProfile={!isStudyMode} />
-
       <div className="stack-view-content">
         <Breadcrumbs
           items={[

@@ -14,7 +14,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
-import PageHeader from '../components/PageHeader';
 import { apiRequest } from '../utils/api';
 import './Home.css';
 import './StackView.css';
@@ -135,8 +134,6 @@ const ClassView = () => {
   if (isLoading) {
     return (
       <div className="class-view-page">
-        <PageHeader showBack showProfile />
-
         <div className="class-view-content">
           <Breadcrumbs
             items={[
@@ -174,8 +171,6 @@ const ClassView = () => {
 
   return (
     <div className="class-view-page">
-      <PageHeader showBack showProfile />
-
       <div className="class-view-content">
         <Breadcrumbs
           items={[

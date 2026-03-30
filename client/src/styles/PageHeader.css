@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 1240px;
   margin: 0 auto 10px;
-  padding: 5px 0;
+  padding: 10px 20px;
 }
 
 .page-header-side {
@@ -72,7 +72,7 @@
   object-fit: contain;
   max-width: 100%;
   display: block;
-  margin: -15px -15px -20px;
+  margin: 5px auto 0;
 }
 
 .page-header-logo-text {
@@ -80,6 +80,7 @@
   font-size: 28px;
   font-weight: 700;
   color: var(--color-primary);
+  margin-top: -15px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -95,7 +96,7 @@
 @media (min-width: 650px) {
   .page-header {
     margin: 0 auto 40px;
-    padding: 20px 0;
+    padding: 20px 30;
   }
 
   .page-header-logo-image {
@@ -115,7 +116,7 @@
   .page-header {
     grid-template-columns: 55px minmax(0, 1fr) 55px;
     margin: 0 auto 50px;
-    padding: 25px 0;
+    padding: 25px 40px;
   }
 
   .page-header-icon-button,

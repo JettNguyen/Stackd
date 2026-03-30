@@ -215,6 +215,12 @@
 	color: var(--text-secondary);
 }
 
+.profile-loading-delayed-placeholder {
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+}
+
 @media (hover: hover) and (pointer: fine) {
 	.profile-cards-grid .folder-icon:hover {
 		transform: translateY(-4px);

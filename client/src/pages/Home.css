@@ -29,6 +29,12 @@
 	animation: home-spin 0.9s linear infinite;
 }
 
+.home-loading-delayed-placeholder {
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+}
+
 @keyframes home-spin {
     to {
         transform: rotate(360deg);
@@ -366,6 +372,13 @@
 
     .section-header h2 {
         font-size: 40px;
+    }
+
+    /* Loader placeholder is in-page and avoids disrupting new transitions */
+    .home-loading-delayed-placeholder {
+        min-height: 220px;
+        display: grid;
+        place-items: center;
     }
 
     .add-button {

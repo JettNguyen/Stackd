@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import useDelayedSpinner from '../utils/useDelayedSpinner';
 import { faPlus, faArrowRight, faArrowLeft, faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
-import PageHeader from '../components/PageHeader';
 import { apiRequest, clearAuthToken, getAuthToken } from '../utils/api';
 import './Home.css';
 
@@ -31,6 +31,7 @@ const Home = () => {
   const [stacks, setStacks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [collapsedCardCount, setCollapsedCardCount] = useState(getCollapsedCardCount);
+  const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
 
   useEffect(() => {
     const updateCollapsedCardCount = () => {
@@ -117,14 +118,17 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      <PageHeader showProfile />
       <Breadcrumbs items={[{ label: 'Home' }]} />
 
       {isLoading ? (
-        <div className="home-loading" role="status" aria-live="polite">
-          <div className="home-loading-spinner"></div>
-          <p>Loading home...</p>
-        </div>
+        isLoadingVisible ? (
+          <div className="home-loading" role="status" aria-live="polite">
+            <div className="home-loading-spinner"></div>
+            <p>Loading home...</p>
+          </div>
+        ) : (
+          <div className="home-loading-delayed-placeholder" aria-hidden="true" />
+        )
       ) : (
         <>
           <section className="stacks-section">

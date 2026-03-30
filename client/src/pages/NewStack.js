@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import PageHeader from '../components/PageHeader';
 import { apiRequest, getAuthToken } from '../utils/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
@@ -37,10 +36,6 @@ const NewStack = () => {
       .then((res) => setClasses(res.classes || []))
       .catch(() => navigate('/', { replace: true }));
   }, [navigate]);
-
-  const handleBack = () => {
-    navigate(-1);
-  };
 
   const parseImport = (text) => {
     return text
@@ -131,8 +126,6 @@ const NewStack = () => {
 
   return (
     <div className="new-stack-page">
-      <PageHeader showBack onBack={handleBack} showProfile />
-
       <Breadcrumbs
         items={[
           { label: 'Home', to: '/home' },

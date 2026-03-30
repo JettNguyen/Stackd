@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useDelayedSpinner from '../utils/useDelayedSpinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
-import PageHeader from '../components/PageHeader';
 import { apiRequest, clearAuthToken } from '../utils/api';
 import './Home.css';
 import './Profile.css';
@@ -41,6 +41,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [feedback, setFeedback] = useState('');
   const [showMoreClasses, setShowMoreClasses] = useState(false);
   const [showMoreStacks, setShowMoreStacks] = useState(false);
@@ -122,8 +123,6 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="profile-page">
-        <PageHeader showBack />
-
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },
@@ -131,10 +130,14 @@ const Profile = () => {
           ]}
         />
 
-        <div className="home-loading" role="status" aria-live="polite">
-          <div className="home-loading-spinner"></div>
-          <p>Loading profile...</p>
-        </div>
+        {isLoadingVisible ? (
+          <div className="home-loading" role="status" aria-live="polite">
+            <div className="home-loading-spinner"></div>
+            <p>Loading profile...</p>
+          </div>
+        ) : (
+          <div className="home-loading-delayed-placeholder" aria-hidden="true" />
+        )}
       </div>
     );
   }
@@ -142,8 +145,6 @@ const Profile = () => {
   if (!profileData) {
     return (
       <div className="profile-page">
-        <PageHeader showBack />
-
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },
@@ -173,8 +174,6 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      <PageHeader showBack />
-
       <Breadcrumbs
         items={[
           { label: 'Home', to: '/home' },
