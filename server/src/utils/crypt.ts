@@ -3,8 +3,6 @@ import bcrypt from 'bcrypt'
 class Crypt {
   instance: typeof bcrypt = bcrypt
 
-  constructor() {}
-
   async hash(value: string) {
     const salt = await this.instance.genSalt(10)
     const hash = await this.instance.hash(value, salt)
@@ -13,9 +11,7 @@ class Crypt {
   }
 
   async validate(value: string, hash: string) {
-    const isOk = await bcrypt.compare(value, hash)
-
-    return isOk
+    return await this.instance.compare(value, hash)
   }
 }
 

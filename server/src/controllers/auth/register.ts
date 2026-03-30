@@ -18,33 +18,34 @@ const register: RequestHandler = async (req, res, next) => {
       return next(validationError)
     }
 
-    const { username, password } = req.body
+    const username = String(req.body.username || '').trim().toLowerCase()
+    const password = String(req.body.password || '')
 
     // Verify account username as unique
-    const found = await Account.findOne({ username })
+    const foundUsername = await Account.findOne({ username })
 
-    if (found) {
+    if (foundUsername) {
       return next({
         statusCode: 400,
-        message: 'An account already exists with that "username"',
+        message: 'An account already exists with that username',
       })
     }
 
     // Encrypt password
-    const hash = crypt.hash(password)
+    const hash = await crypt.hash(password)
 
     // Create account
     const account = new Account({ username, password: hash })
     await account.save()
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id, username: account.username })
 
     // Exclude password from response
     const { password: _, ...data } = account.toObject()
 
     res.status(201).json({
-      message: 'Succesfully registered',
+      message: 'Successfully registered',
       data,
       token,
     })

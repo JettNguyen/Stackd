@@ -3,8 +3,6 @@ import joi from 'joi'
 class Joi {
   instance: typeof joi = joi
 
-  constructor() {}
-
   async validate(schema: Record<string, any>, body: Record<string, any>) {
     try {
       await this.instance.object(schema).validateAsync(body)

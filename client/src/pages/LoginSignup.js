@@ -1,86 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import './LoginSignup.css';
 import logo from '../assets/logo.png';
+import { apiRequest, getAuthToken, setAuthToken } from '../utils/api';
 
 const LoginSignup = () => {
   const navigate = useNavigate();
+  const authToken = getAuthToken();
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [registerForm, setRegisterForm] = useState({ email: '', username: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({ username: '', password: '' });
 
   useEffect(() => {
-    const existingSession = localStorage.getItem('stackd_mock_session');
-    if (existingSession) {
+    if (authToken) {
       navigate('/home', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, authToken]);
 
-  const getUsers = () => {
-    const users = localStorage.getItem('stackd_mock_users');
-    return users ? JSON.parse(users) : [];
+  if (authToken) {
+    return <Navigate to='/home' replace />;
+  }
+
+  const upsertLocalUser = (username) => {
+    const users = JSON.parse(localStorage.getItem('stackd_mock_users') || '[]');
+    const hasUser = users.some((user) => user.username.toLowerCase() === username.toLowerCase());
+
+    if (!hasUser) {
+      users.push({
+        email: '',
+        username,
+        password: '',
+        displayName: username,
+        bio: '',
+        major: '',
+        joinedAt: new Date().toISOString(),
+      });
+      localStorage.setItem('stackd_mock_users', JSON.stringify(users));
+    }
   };
 
-  const setSession = (username) => {
-    localStorage.setItem('stackd_mock_session', JSON.stringify({ username }));
-  };
+  const handleLogin = async () => {
+    const { username, password } = loginForm;
+    const trimUsername = username.trim();
+    const trimPassword = password.trim();
 
-  const handleLogin = () => {
-    const username = loginForm.username.trim();
-    const password = loginForm.password.trim();
-
-    if (!username || !password) {
+    if (!trimUsername || !trimPassword) {
       setMessage('Please enter username and password.');
       return;
     }
 
-    const users = getUsers();
-    const matchingUser = users.find((user) => user.username === username && user.password === password);
+    try {
+      const result = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username: trimUsername, password: trimPassword }),
+      });
 
-    if (!matchingUser) {
-      setMessage('Invalid credentials.');
-      return;
+      const token = result?.token || '';
+      const account = result?.data || {};
+      const sessionUsername = account.username || trimUsername;
+
+      setAuthToken(token);
+      upsertLocalUser(sessionUsername);
+      navigate('/home');
+    } catch (error) {
+      setMessage(error?.message || 'Invalid credentials.');
     }
-
-    setSession(username);
-    navigate('/home');
   };
 
-  const handleRegister = () => {
-    const email = registerForm.email.trim();
-    const username = registerForm.username.trim();
-    const password = registerForm.password.trim();
+  const handleRegister = async () => {
+    const { username, password } = registerForm;
+    const trimUsername = username.trim();
+    const trimPassword = password.trim();
 
-    if (!email || !username || !password) {
-      setMessage('Please fill out all fields.');
+    if (!trimUsername || !trimPassword) {
+      setMessage('Please enter username and password.');
       return;
     }
 
-    const users = getUsers();
-    const userExists = users.some((user) => user.username.toLowerCase() === username.toLowerCase());
+    try {
+      const result = await apiRequest('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username: trimUsername, password: trimPassword }),
+      });
 
-    if (userExists) {
-      setMessage('Username already exists.');
-      return;
+      const token = result?.token || '';
+      const account = result?.data || {};
+      const sessionUsername = account.username || trimUsername;
+
+      setAuthToken(token);
+      upsertLocalUser(sessionUsername);
+      navigate('/home');
+    } catch (error) {
+      setMessage(error?.message || 'Registration failed.');
     }
+  };
 
-    const updatedUsers = [...users, { email, username, password }];
-    localStorage.setItem('stackd_mock_users', JSON.stringify(updatedUsers));
-    setSession(username);
-    navigate('/home');
+  const handleLoginSubmit = (event) => {
+    event.preventDefault();
+    handleLogin();
+  };
+
+  const handleRegisterSubmit = (event) => {
+    event.preventDefault();
+    handleRegister();
   };
 
   return (
     <div className="login-signup-page">
       <div className="login-signup-header">
-        <div className="logo">
+        <div className="login-signup-brand">
           <img src={logo} alt="Stackd Logo" className="login-signup-logo-image" />
           <h1 className="login-signup-logo-text">Stackd</h1>
         </div>
       </div>
       {isLogin ? (
-        <form className="login-signup-form">
+        <form className="login-signup-form" onSubmit={handleLoginSubmit}>
           <div className="login-signup-form-comp">
             <p className="login-signup-form-title">Username</p>
             <input
@@ -100,7 +135,7 @@ const LoginSignup = () => {
             ></input>
           </div>
           {message && <p className="login-signup-feedback">{message}</p>}
-          <button className="login-button" type="button" onClick={handleLogin}>Log in</button>
+          <button className="login-button" type="submit">Log in</button>
           <button
             className="switch-button"
             type="button"
@@ -113,16 +148,7 @@ const LoginSignup = () => {
           </button>
         </form>
       ) : (
-        <form className="login-signup-form">
-          <div className="login-signup-form-comp">
-            <p className="login-signup-form-title">Email</p>
-            <input
-              className="login-signup-form-input"
-              type="email"
-              value={registerForm.email}
-              onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
-            ></input>
-          </div>
+        <form className="login-signup-form" onSubmit={handleRegisterSubmit}>
           <div className="login-signup-form-comp">
             <p className="login-signup-form-title">Username</p>
             <input
@@ -142,7 +168,7 @@ const LoginSignup = () => {
             ></input>
           </div>
           {message && <p className="login-signup-feedback">{message}</p>}
-          <button className="login-button" type="button" onClick={handleRegister}>Create Account</button>
+          <button className="login-button" type="submit">Create Account</button>
           <button
             className="switch-button"
             type="button"

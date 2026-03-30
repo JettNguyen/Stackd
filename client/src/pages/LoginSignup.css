@@ -9,17 +9,32 @@
     align-items: center;
 }
 
+.login-signup-header {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.login-signup-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    text-align: center;
+}
+
 .login-signup-logo-image {
-    width: 165px;
+    width: 120px;
     height: auto;
     object-fit: contain;
     max-width: 100%;
     display: block;
-    margin: -30px -30px -35px;
+    margin: -30px 0 -35px;
 }
 
 .login-signup-logo-text {
-    font-size: 65px;
+    font-size: 52px;
     font-weight: 700;
     color: var(--color-primary);
     margin: 0;
@@ -57,7 +72,14 @@
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.5));
 }
 
+.login-signup-feedback {
+    color: var(--color-primary);
+    font-size: 14px;
+    margin-top: 10px;
+}
+
 .login-button { 
+    cursor: pointer;
     background-color: var(--color-primary);
     color: var(--text-primary);
     font-weight: bold;
@@ -76,9 +98,10 @@
 }
 
 .switch-button { 
+    cursor: pointer;
     background-color: var(--color-secondary);
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: 11px;
     border-style: none;
     border-radius: 50px;
     width : 160px;
@@ -94,10 +117,80 @@
 
 @media (hover: hover) and (pointer: fine) {
     .login-button:hover {
-        transform: translateY(-2px);
+        transform: translateY(2px);
     }
 
     .switch-button:hover {
-        transform: translateY(-2px);
+        transform: translateY(2px);
+    }
+}
+
+@media (min-width: 650px) {
+    .login-signup-logo-image {
+        width: 145px;
+        height: auto;
+        object-fit: contain;
+        max-width: 100%;
+        display: block;
+    }
+
+    .login-signup-logo-text {
+        font-size: 62px;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 0;
+    }
+
+    .login-signup-form {
+        width: 350px;
+    }
+
+    .login-signup-form-input {
+        width: 300px;
+    }
+
+    .login-button { 
+        font-size: 20px;
+        width : 250px;
+    }
+
+    .switch-button { 
+        font-size: 12px;
+        width : 175px;
+    }
+}
+
+@media (min-width: 1250px) {
+    .login-signup-logo-image {
+        width: 165px;
+        height: auto;
+        object-fit: contain;
+        max-width: 100%;
+        display: block;
+    }
+
+    .login-signup-logo-text {
+        font-size: 72px;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 0;
+    }
+
+    .login-signup-form {
+        width: 400px;
+    }
+
+    .login-signup-form-input {
+        width: 350px;
+    }
+
+    .login-button { 
+        font-size: 24px;
+        width : 300px;
+    }
+
+    .switch-button { 
+        font-size: 14px;
+        width : 225px;
     }
 }

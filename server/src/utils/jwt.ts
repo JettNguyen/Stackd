@@ -10,13 +10,13 @@ class JWT {
   }
 
   signToken(payload: Record<string, any>, expiresIn: jsonwebtoken.SignOptions['expiresIn'] = '12h') {
-    const token = this.instance.sign(payload, JWT_SECRET, { expiresIn })
+    const token = this.instance.sign(payload, this.secret, { expiresIn })
 
     return token
   }
 
   verifyToken(token: string) {
-    const auth = this.instance.verify(token, JWT_SECRET)
+    const auth = this.instance.verify(token, this.secret)
 
     return auth
   }

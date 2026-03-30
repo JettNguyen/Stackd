@@ -1,43 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronLeft, faPlus, faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
+import { faChevronDown, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { apiRequest, getAuthToken } from '../utils/api';
+import Breadcrumbs from '../components/Breadcrumbs';
+import Modal from '../components/Modal';
 import './NewStack.css';
 
 const NewStack = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const initialStackName = location.state?.stackName ?? '';
-  const initialCards = Array.isArray(location.state?.cards) && location.state.cards.length > 0
-    ? location.state.cards.map((card, index) => ({
-        id: index + 1,
-        term: card.term ?? '',
-        definition: card.definition ?? '',
-      }))
-    : [
-        { id: 1, term: '', definition: '' },
-      ];
+  const initialSelectedClassId = location.state?.selectedClassId ?? null;
+  const initialCards = location.state?.cards?.length
+    ? location.state.cards.map((card, i) => ({ id: i + 1, term: card.term || '', definition: card.definition || '' }))
+    : [{ id: 1, term: '', definition: '' }];
 
   const [stackName, setStackName] = useState(initialStackName);
   const [importText, setImportText] = useState('');
   const [cards, setCards] = useState(initialCards);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [selectedClassId, setSelectedClassId] = useState(initialSelectedClassId);
+  const [classes, setClasses] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [importFeedback, setImportFeedback] = useState('');
 
-  const classes = [
-    { id: 1, name: 'HCI' },
-    { id: 2, name: 'Internet Programming' },
-    { id: 3, name: 'Biology' },
-    { id: 4, name: 'AP HuG' },
-  ];
+  useEffect(() => {
+    if (!getAuthToken()) {
+      navigate('/', { replace: true });
+      return;
+    }
+    apiRequest('/account/user')
+      .then((res) => setClasses(res.classes || []))
+      .catch(() => navigate('/', { replace: true }));
+  }, [navigate]);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const parseQuizletText = (text) => {
+  const parseImport = (text) => {
     return text
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -54,9 +54,13 @@ const NewStack = () => {
   };
 
   const handleImport = () => {
-    const parsed = parseQuizletText(importText);
-    if (parsed.length === 0) return;
+    const parsed = parseImport(importText);
+    if (parsed.length === 0) {
+      setImportFeedback('No cards found. Check the format and try again.');
+      return;
+    }
     setCards(parsed.map((card, index) => ({ id: index + 1, ...card })));
+    setImportFeedback(`✓ Imported ${parsed.length} card${parsed.length === 1 ? '' : 's'}`);
   };
 
   const handleCardChange = (id, field, value) => {
@@ -77,8 +81,7 @@ const NewStack = () => {
   const autoResize = (element) => {
     if (!element) return;
     element.style.height = 'auto';
-    const borderOffset = element.offsetHeight - element.clientHeight;
-    element.style.height = `${element.scrollHeight + borderOffset}px`;
+    element.style.height = `${element.scrollHeight}px`;
   };
 
   useEffect(() => {
@@ -87,6 +90,10 @@ const NewStack = () => {
   }, [cards]);
 
   const handleOpenModal = () => {
+    if (!stackName.trim()) {
+      setFeedback('Please enter a stack name before saving.');
+      return;
+    }
     setIsModalOpen(true);
   };
 
@@ -95,26 +102,36 @@ const NewStack = () => {
     setSelectedClassId(null);
   };
 
-  const handleSaveStack = () => {
-    handleCloseModal();
+  const handleSaveStack = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await apiRequest('/stack/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: stackName.trim(),
+          classId: selectedClassId || null,
+          cards: cards.map((card) => ({ term: card.term, definition: card.definition })),
+        }),
+      });
+      handleCloseModal();
+      navigate('/home');
+    } catch (err) {
+      setFeedback(err.message || 'Failed to save stack. Please try again.');
+      setIsModalOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="new-stack-page">
-      <header className="new-stack-header">
-        <button className="back-button" onClick={handleBack}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-
-        <button className="profile-button" onClick={() => navigate('/profile')}>
-          <FontAwesomeIcon icon={faUser} />
-        </button>
-      </header>
+      <Breadcrumbs
+        items={[
+          { label: 'Home', to: '/home' },
+          { label: 'New Stack' },
+        ]}
+      />
 
       <div className="new-stack-content">
         <div className="stack-preview">
@@ -139,6 +156,8 @@ const NewStack = () => {
           />
         </div>
 
+        {feedback && <p className="new-stack-feedback">{feedback}</p>}
+
         <section className={`import-section ${isImportOpen ? 'open' : 'collapsed'}`}>
           <button
             type="button"
@@ -152,6 +171,13 @@ const NewStack = () => {
           </button>
           {isImportOpen && (
             <div className="import-body">
+              <ol className="import-steps">
+                <li>Go to your Quizlet flashcard set (you must be the owner)</li>
+                <li>Click the <strong>⋯</strong> menu in the upper right</li>
+                <li>Click <strong>Export</strong></li>
+                <li>Under <em>Between term and definition</em>, select <strong>Comma</strong></li>
+                <li>Copy the text, then paste it below</li>
+              </ol>
               <textarea
                 className="import-textarea"
                 value={importText}
@@ -159,10 +185,11 @@ const NewStack = () => {
                 placeholder="Paste exported Quizlet text here"
               />
               <div className="import-actions">
-                <button className="import-button" onClick={handleImport}>
+                <button type="button" className="import-button" onClick={handleImport}>
                   Import
                 </button>
               </div>
+              {importFeedback && <p className="import-feedback">{importFeedback}</p>}
             </div>
           )}
         </section>
@@ -210,46 +237,42 @@ const NewStack = () => {
             </div>
           ))}
 
-          <button className="add-card-button" onClick={handleAddCard}>
+          <button type="button" className="add-card-button" onClick={handleAddCard}>
             <FontAwesomeIcon icon={faPlus} />
             <span>add</span>
+          </button>
+
+          <button type="button" className="save-stack-button" onClick={handleOpenModal}>
+            Add to...
           </button>
         </section>
       </div>
 
-      <div className="new-stack-actions-bar">
-        <button className="save-stack-button" onClick={handleOpenModal}>Add to...</button>
-      </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Add to Class">
+        <p className="new-stack-modal-subtitle">Select a class or save without one</p>
 
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Add to Class</h2>
-            <p className="modal-subtitle">Select a class or create without one</p>
-
-            <div className="modal-classes-grid">
-              {classes.map((cls) => (
-                <button
-                  key={cls.id}
-                  className={`modal-class-button ${selectedClassId === cls.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedClassId(cls.id)}
-                >
-                  {cls.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="modal-actions">
-              <button className="modal-cancel-button" onClick={handleCloseModal}>
-                Cancel
-              </button>
-              <button className="modal-save-button" onClick={handleSaveStack}>
-                Save Stack
-              </button>
-            </div>
-          </div>
+        <div className="new-stack-modal-classes-grid">
+          {classes.map((cls) => (
+            <button
+              key={cls._id}
+              className={`new-stack-modal-class-button ${selectedClassId === cls._id ? 'selected' : ''}`}
+              type="button"
+              onClick={() => setSelectedClassId(cls._id)}
+            >
+              {cls.name}
+            </button>
+          ))}
         </div>
-      )}
+
+        <div className="new-stack-modal-actions">
+          <button type="button" className="new-stack-modal-cancel-button" onClick={handleCloseModal}>
+            Cancel
+          </button>
+          <button type="button" className="new-stack-modal-save-button" onClick={handleSaveStack} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Stack'}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -18,7 +18,8 @@ const login: RequestHandler = async (req, res, next) => {
       return next(validationError)
     }
 
-    const { username, password } = req.body
+    const username = String(req.body.username || '').trim().toLowerCase()
+    const password = String(req.body.password || '')
 
     // Get account from DB, and verify existance
     const account = await Account.findOne({ username })
@@ -26,28 +27,28 @@ const login: RequestHandler = async (req, res, next) => {
     if (!account) {
       return next({
         statusCode: 400,
-        message: 'Bad credentials',
+        message: 'Incorrect username or password',
       })
     }
 
     // Verify password hash
-    const passOk = crypt.validate(password, account.password)
+    const passOk = await crypt.validate(password, account.password)
 
     if (!passOk) {
       return next({
         statusCode: 400,
-        message: 'Bad credentials',
+        message: 'Incorrect username or password',
       })
     }
 
     // Generate access token
-    const token = jwt.signToken({ uid: account._id, role: account.role })
+    const token = jwt.signToken({ uid: account._id, username: account.username })
 
     // Remove password from response data
     const { password: _, ...accountData } = account.toObject()
 
     res.status(200).json({
-      message: 'Succesfully logged-in',
+      message: 'Successfully logged in',
       data: accountData,
       token,
     })
