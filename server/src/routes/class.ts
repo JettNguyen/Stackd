@@ -2,8 +2,8 @@ import express from 'express'
 import checkBearerToken from '../middlewares/check-bearer-token'
 import errorHandler from '../middlewares/error-handler'
 import getClassById from '../controllers/class/get'
-import { createClass, addUser } from '../controllers/class/post'
-import { updateVisibility } from '../controllers/class/patch'
+import { createClass, addUser, addStack } from '../controllers/class/post'
+import { updateVisibility, updateName } from '../controllers/class/patch'
 // import update from '../controllers/class/update'
 // import deleteClass from '..controllers/class/delete'
 
@@ -20,17 +20,14 @@ router.post('', checkBearerToken, createClass)
 // POST /classes/:id/users - add user to class
 router.post('/:id/users', checkBearerToken, addUser)
 
-// POST /classes/:id/stacks - create new stack in class
-//router.post('/:id/stacks', checkBearerToken, createStack)
-
-// POST /classes/:id/stack-links - link existing stack
-//router.post('/:id/stack-links', checkBearerToken, addStack)
+// POST /classes/:id/stacks - link existing stack to class
+router.post('/:id/stacks', checkBearerToken, addStack)
 
 // PATCH /classes/:id/visibility - update class visibility
 router.patch('/:id/visibility', checkBearerToken, updateVisibility)
 
 // PATCH /classes/:id/name - update class name
-//router.patch('/:id/name', checkBearerToken, updateName)
+router.patch('/:id/name', checkBearerToken, updateName)
 
 // DELETE /classes/:id/stacks/:stackId - remove stack from class
 //router.delete('/:id/stacks/:stackId', checkBearerToken, removeStack)

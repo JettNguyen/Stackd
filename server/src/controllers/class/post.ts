@@ -185,4 +185,74 @@ const addUser: RequestHandler = async (req, res, next) => {
   }
 }
 
-export { createClass, addUser }
+// add stack to class
+const addStack: RequestHandler = async (req, res, next) => {
+  try {
+    const { uid } = req.auth || {}
+    const cid = req.params.id
+    const { stackId } = req.body
+
+    if (!stackId) {
+      res.status(400).json({
+        message: 'stackId is required'
+      })
+      return
+    }
+
+    const selectedClass = await Class.findById(cid)
+
+    if (!selectedClass) {
+      res.status(404).json({
+        message: 'Class not found'
+      })
+      return
+    }
+
+    // check if user is authorized to add stacks (must be owner or editor)
+    let role: ClassRole | null = null
+    if (uid) {
+      const userEntry = selectedClass.users.find(
+        (u: any) => u.account._id.toString() === uid.toString()
+      )
+      if (userEntry && validRoles.includes(userEntry.role)) {
+        role = userEntry.role
+      }
+    }
+
+    if (role !== 'owner' && role !== 'editor') {
+      res.status(403).json({
+        message: 'You do not have permission to add stacks to this class'
+      })
+      return
+    }
+
+    const stack = await Stack.findById(stackId)
+
+    if (!stack) {
+      res.status(404).json({
+        message: 'Stack not found'
+      })
+      return
+    }
+
+    if (stack.class) {
+      res.status(400).json({
+        message: 'Stack is already in a class'
+      })
+      return
+    }
+
+    stack.class = new mongoose.Types.ObjectId(cid)
+    await stack.save()
+
+    res.status(200).json({
+      message: 'Stack added to class!',
+      stack
+    })
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+export { createClass, addUser, addStack }

@@ -18,7 +18,7 @@ export interface Class {
 
 export interface Stack {
   name: string
-  class: Types.ObjectId
+  class: Types.ObjectId | null
   visibility: 'public' | 'private'
   users: {
     account: Types.ObjectId

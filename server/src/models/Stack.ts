@@ -6,9 +6,9 @@ const stackSchema = new Schema<Stack>(
     name: { type: String, required: true },
 
     class: {
-      type: Schema.Types.ObjectId,
-      ref: 'Class',
-      required: true
+    type: Schema.Types.ObjectId,
+    ref: 'Class',
+    default: null
     },
 
     visibility: {
@@ -27,7 +27,7 @@ const stackSchema = new Schema<Stack>(
         role: {
           type: String,
           enum: ['viewer', 'editor', 'owner'],
-          required: true
+          default: 'viewer'
         }
       }
     ]

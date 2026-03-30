@@ -50,7 +50,7 @@ const user: RequestHandler = async (req, res, next) => {
     ]);
 
     const userStacks = await Stack.find({'users.account': account._id})
-      .select('_id name updatedAt createdAt')
+      .select('_id name class updatedAt createdAt')
 
     res.status(200).json({
       message: 'Succesfully got account',
