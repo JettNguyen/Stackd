@@ -24,7 +24,7 @@ const bootstrap = async () => {
 
   app.use('/account', accountRoutes)
 
-  app.use('/class', classRoutes)
+  app.use('/classes', classRoutes)
 
   app.use('/stack', stackRoutes)
 

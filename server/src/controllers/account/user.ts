@@ -21,6 +21,11 @@ const user: RequestHandler = async (req, res, next) => {
 
     const userClasses = await Class.aggregate([
       {
+        $match: {
+          'users.account': account._id
+        }
+      },
+      {
         $lookup: {
           from: 'stacks',
           localField: '_id',
