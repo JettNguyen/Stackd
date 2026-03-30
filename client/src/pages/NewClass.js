@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import './NewClass.css';
 
 const NewClass = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const initialClassName = location.state?.className ?? '';
 
@@ -33,9 +32,6 @@ const NewClass = () => {
     [stacks, selectedStackIds]
   );
 
-  const handleBack = () => {
-    navigate(-1);
-  };
 
   const toggleStackSelection = (stackId) => {
     setSelectedStackIds((prev) =>
