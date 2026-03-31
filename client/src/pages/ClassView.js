@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useDelayedSpinner from '../utils/useDelayedSpinner';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -12,6 +12,7 @@ import {
   faUsers,
   faEye,
   faTrash,
+  faUserMinus,
 } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
@@ -27,27 +28,27 @@ const ClassView = () => {
   const [stacks, setStacks] = useState([]);
   const [role, setRole] = useState(null);
   const [users, setUsers] = useState([]);
+  const [visibility, setVisibility] = useState('private');
   const [actionMessage, setActionMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [editClassName, setEditClassName] = useState('');
+  const [inviteUsername, setInviteUsername] = useState('');
+  const [inviteRole, setInviteRole] = useState('viewer');
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadClass = async () => {
-      if (isMounted) {
+  const loadClass = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) {
         setIsLoading(true);
       }
 
       try {
         const response = await apiRequest(`/class/view?class=${id}`);
-        if (!isMounted) {
-          return;
-        }
-
         setClassItem({ id, name: response?.name || 'Class' });
+        setEditClassName(response?.name || '');
         setStacks(
           (response?.stacks || []).map((stack) => ({
             id: stack._id,
@@ -55,28 +56,40 @@ const ClassView = () => {
             className: response?.name || '',
           }))
         );
+        setVisibility(response?.visibility || 'private');
         setRole(response?.role ?? null);
         setUsers(Array.isArray(response?.users) ? response.users : []);
       } catch (error) {
-        if (isMounted) {
-          setClassItem(null);
-          setStacks([]);
-          setRole(null);
-          setUsers([]);
-        }
+        setClassItem(null);
+        setStacks([]);
+        setRole(null);
+        setUsers([]);
       } finally {
-        if (isMounted) {
+        if (showSpinner) {
           setIsLoading(false);
         }
       }
+    },
+    [id]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const run = async () => {
+      if (!isMounted) {
+        return;
+      }
+
+      await loadClass(true);
     };
 
-    loadClass();
+    run();
 
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [loadClass]);
 
   useEffect(() => {
     if (!isLinkCopied) {
@@ -115,6 +128,11 @@ const ClassView = () => {
       return;
     }
 
+    if (!canEdit) {
+      setActionMessage('Only class editors/owners can add stacks to this class.');
+      return;
+    }
+
     navigate('/stack/new', {
       state: {
         selectedClassId: classItem.id,
@@ -122,16 +140,153 @@ const ClassView = () => {
     });
   };
 
-  const handleUnavailableAction = (label) => {
-    setActionMessage(`${label} will be available once class action routes are added.`);
-    setTimeout(() => {
-      setActionMessage('');
-    }, 2000);
-  };
-
   const isOwner = role === 'owner';
   const canEdit = role === 'owner' || role === 'editor';
   const isMember = Boolean(role);
+
+  const runClassAction = async (request) => {
+    if (isActionLoading) {
+      return;
+    }
+
+    setIsActionLoading(true);
+
+    try {
+      const message = await request();
+
+      if (message) {
+        setActionMessage(message);
+      }
+
+      await loadClass(false);
+    } catch (error) {
+      setActionMessage(error?.message || 'Action failed. Please try again.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleJoinOrLeave = async () => {
+    if (!classItem) {
+      return;
+    }
+
+    await runClassAction(async () => {
+      if (isMember) {
+        const response = await apiRequest('/class/leave', {
+          method: 'POST',
+          body: JSON.stringify({ classId: classItem.id }),
+        });
+
+        return response?.message || 'Left class.';
+      }
+
+      const response = await apiRequest('/class/join', {
+        method: 'POST',
+        body: JSON.stringify({ classId: classItem.id }),
+      });
+
+      return response?.message || 'Joined class.';
+    });
+
+    setIsSettingsOpen(false);
+  };
+
+  const handleUpdateClassInfo = async () => {
+    if (!classItem || !editClassName.trim()) {
+      setActionMessage('Enter a class name before saving.');
+      return;
+    }
+
+    await runClassAction(async () => {
+      const response = await apiRequest('/class/update', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          classId: classItem.id,
+          name: editClassName.trim(),
+        }),
+      });
+
+      return response?.message || 'Class updated.';
+    });
+  };
+
+  const handleToggleVisibility = async () => {
+    if (!classItem) {
+      return;
+    }
+
+    const nextVisibility = visibility === 'public' ? 'private' : 'public';
+
+    await runClassAction(async () => {
+      const response = await apiRequest('/class/visibility', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          classId: classItem.id,
+          visibility: nextVisibility,
+        }),
+      });
+
+      return response?.message || 'Visibility updated.';
+    });
+  };
+
+  const handleAddMember = async () => {
+    if (!classItem || !inviteUsername.trim()) {
+      setActionMessage('Enter a username to add.');
+      return;
+    }
+
+    await runClassAction(async () => {
+      const response = await apiRequest('/class/member/add', {
+        method: 'POST',
+        body: JSON.stringify({
+          classId: classItem.id,
+          username: inviteUsername.trim(),
+          role: inviteRole,
+        }),
+      });
+
+      setInviteUsername('');
+      return response?.message || 'Member added.';
+    });
+  };
+
+  const handleRemoveMember = async (accountId) => {
+    if (!classItem) {
+      return;
+    }
+
+    await runClassAction(async () => {
+      const response = await apiRequest('/class/member/remove', {
+        method: 'POST',
+        body: JSON.stringify({
+          classId: classItem.id,
+          accountId,
+        }),
+      });
+
+      return response?.message || 'Member removed.';
+    });
+  };
+
+  const handleDeleteClass = async () => {
+    if (!classItem) {
+      return;
+    }
+
+    await runClassAction(async () => {
+      const response = await apiRequest('/class/delete', {
+        method: 'DELETE',
+        body: JSON.stringify({ classId: classItem.id }),
+      });
+
+      navigate('/home', { replace: true });
+      return response?.message || 'Class deleted.';
+    });
+
+    setIsSettingsOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -218,6 +373,9 @@ const ClassView = () => {
             <div className="info-item">
               <span>{role ? `Role: ${role}` : 'Role: guest'}</span>
             </div>
+            <div className="info-item">
+              <span>Visibility: {visibility}</span>
+            </div>
           </div>
 
           <div className="stack-action-buttons">
@@ -273,15 +431,15 @@ const ClassView = () => {
           <button
             type="button"
             className="modal-option-button"
-            onClick={() => {
-              handleUnavailableAction(isMember ? 'Leave class' : 'Join class');
-              setIsSettingsOpen(false);
-            }}
+            onClick={handleJoinOrLeave}
+            disabled={isActionLoading || (isOwner && isMember)}
           >
             <div className="modal-option-icon">
               <FontAwesomeIcon icon={faSignOutAlt} />
             </div>
-            <span className="modal-option-text">{isMember ? 'Leave Class' : 'Join Class'}</span>
+            <span className="modal-option-text">
+              {isOwner && isMember ? 'Owner cannot leave class' : isMember ? 'Leave Class' : 'Join Class'}
+            </span>
           </button>
         </div>
 
@@ -292,16 +450,21 @@ const ClassView = () => {
             <button
               type="button"
               className="modal-option-button"
-              onClick={() => {
-                handleUnavailableAction('Edit class info');
-                setIsSettingsOpen(false);
-              }}
+              onClick={handleUpdateClassInfo}
+              disabled={isActionLoading}
             >
               <div className="modal-option-icon">
                 <FontAwesomeIcon icon={faEdit} />
               </div>
               <span className="modal-option-text">Edit Class Info</span>
             </button>
+            <input
+              className="class-settings-input"
+              type="text"
+              value={editClassName}
+              onChange={(event) => setEditClassName(event.target.value)}
+              placeholder="Class name"
+            />
           </div>
         )}
 
@@ -312,28 +475,41 @@ const ClassView = () => {
             <button
               type="button"
               className="modal-option-button"
-              onClick={() => {
-                handleUnavailableAction('Manage users');
-                setIsSettingsOpen(false);
-              }}
+              onClick={handleAddMember}
+              disabled={isActionLoading}
             >
               <div className="modal-option-icon">
                 <FontAwesomeIcon icon={faUsers} />
               </div>
-              <span className="modal-option-text">Add/Remove Users</span>
+              <span className="modal-option-text">Add/Update User</span>
             </button>
+            <div className="class-settings-row">
+              <input
+                className="class-settings-input"
+                type="text"
+                value={inviteUsername}
+                onChange={(event) => setInviteUsername(event.target.value)}
+                placeholder="username"
+              />
+              <select
+                className="class-settings-select"
+                value={inviteRole}
+                onChange={(event) => setInviteRole(event.target.value)}
+              >
+                <option value="viewer">viewer</option>
+                <option value="editor">editor</option>
+              </select>
+            </div>
             <button
               type="button"
               className="modal-option-button"
-              onClick={() => {
-                handleUnavailableAction('Toggle visibility');
-                setIsSettingsOpen(false);
-              }}
+              onClick={handleToggleVisibility}
+              disabled={isActionLoading}
             >
               <div className="modal-option-icon">
                 <FontAwesomeIcon icon={faEye} />
               </div>
-              <span className="modal-option-text">Toggle Visibility</span>
+              <span className="modal-option-text">Make {visibility === 'public' ? 'Private' : 'Public'}</span>
             </button>
           </div>
         )}
@@ -345,10 +521,8 @@ const ClassView = () => {
             <button
               type="button"
               className="modal-option-button"
-              onClick={() => {
-                handleUnavailableAction('Delete class');
-                setIsSettingsOpen(false);
-              }}
+              onClick={handleDeleteClass}
+              disabled={isActionLoading}
             >
               <div className="modal-option-icon">
                 <FontAwesomeIcon icon={faTrash} />
@@ -367,6 +541,16 @@ const ClassView = () => {
                 <div key={`${member.accountId}-${member.username}`} className="modal-member-chip">
                   <span className="modal-member-name">{member.username}</span>
                   <span className="modal-member-role">{member.role}</span>
+                  {member.role !== 'owner' && (
+                    <button
+                      type="button"
+                      className="modal-member-remove"
+                      onClick={() => handleRemoveMember(member.accountId)}
+                      disabled={isActionLoading}
+                    >
+                      <FontAwesomeIcon icon={faUserMinus} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

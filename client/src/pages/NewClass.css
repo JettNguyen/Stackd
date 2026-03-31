@@ -232,6 +232,14 @@
 	background-color: var(--color-primary-dark);
 }
 
+.new-class-feedback {
+	margin-top: -10px;
+	margin-bottom: 20px;
+	font-size: 14px;
+	color: #ffb4a8;
+	font-weight: 600;
+}
+
 @media (hover: hover) and (pointer: fine) {
 	.stack-option:hover {
 		border-color: var(--color-primary);

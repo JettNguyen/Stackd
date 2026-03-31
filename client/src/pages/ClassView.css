@@ -62,6 +62,43 @@
 	min-height: 20px;
 }
 
+.class-settings-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.class-settings-input,
+.class-settings-select {
+	width: 100%;
+	padding: 10px 12px;
+	border-radius: 12px;
+	border: 2px solid var(--text-secondary);
+	background: var(--bg-card);
+	color: var(--text-primary);
+	font-size: 14px;
+}
+
+.class-settings-select {
+	min-width: 100px;
+	text-transform: capitalize;
+}
+
+.modal-member-remove {
+	margin-left: 8px;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 999px;
+	background: var(--bg-overlay-mid);
+	color: var(--text-primary);
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .class-view-page .stack-action-buttons {
 	margin-top: -10px;
 	margin-bottom: -10px;
