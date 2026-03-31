@@ -9,6 +9,7 @@ const LoginSignup = () => {
   const authToken = getAuthToken();
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ username: '', password: '' });
 
@@ -50,6 +51,8 @@ const LoginSignup = () => {
       return;
     }
 
+    setLoading(true);
+    setMessage('');
     try {
       const result = await apiRequest('/auth/login', {
         method: 'POST',
@@ -63,8 +66,12 @@ const LoginSignup = () => {
       setAuthToken(token);
       upsertLocalUser(sessionUsername);
       navigate('/home');
-    } catch (error) {
-      setMessage(error?.message || 'Invalid credentials.');
+    } 
+    catch (error) {
+      setMessage(error?.payload?.message || error?.message || 'Incorrect username or password.');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -78,6 +85,8 @@ const LoginSignup = () => {
       return;
     }
 
+    setLoading(true);
+    setMessage('');
     try {
       const result = await apiRequest('/auth/register', {
         method: 'POST',
@@ -91,8 +100,12 @@ const LoginSignup = () => {
       setAuthToken(token);
       upsertLocalUser(sessionUsername);
       navigate('/home');
-    } catch (error) {
-      setMessage(error?.message || 'Registration failed.');
+    }
+    catch (error) { 
+      setMessage(error?.payload?.message || error?.message || 'Registration failed.');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -123,6 +136,7 @@ const LoginSignup = () => {
               type="text"
               value={loginForm.username}
               onChange={(event) => setLoginForm((prev) => ({ ...prev, username: event.target.value }))}
+              disabled={loading}
             ></input>
           </div>
           <div className="login-signup-form-comp">
@@ -132,10 +146,12 @@ const LoginSignup = () => {
               type="password"
               value={loginForm.password}
               onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
+              disabled={loading}
             ></input>
           </div>
           {message && <p className="login-signup-feedback">{message}</p>}
-          <button className="login-button" type="submit">Log in</button>
+          {loading && <p className="login-signup-loading">Logging in...</p>}
+          <button className="login-button" type="submit" disabled={loading}>Log in</button>
           <button
             className="switch-button"
             type="button"
@@ -143,6 +159,7 @@ const LoginSignup = () => {
               setMessage('');
               setIsLogin(false);
             }}
+            disabled={loading}
           >
             Don't have one?<br/>Create one!
           </button>
@@ -156,6 +173,7 @@ const LoginSignup = () => {
               type="text"
               value={registerForm.username}
               onChange={(event) => setRegisterForm((prev) => ({ ...prev, username: event.target.value }))}
+              disabled={loading}
             ></input>
           </div>
           <div className="login-signup-form-comp">
@@ -165,10 +183,12 @@ const LoginSignup = () => {
               type="password"
               value={registerForm.password}
               onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
+              disabled={loading}
             ></input>
           </div>
           {message && <p className="login-signup-feedback">{message}</p>}
-          <button className="login-button" type="submit">Create Account</button>
+          {loading && <p className="login-signup-loading">Creating account...</p>}
+          <button className="login-button" type="submit" disabled={loading}>Create Account</button>
           <button
             className="switch-button"
             type="button"
@@ -176,6 +196,7 @@ const LoginSignup = () => {
               setMessage('');
               setIsLogin(true);
             }}
+            disabled={loading}
           >
             Already have one?<br/>Log in!
           </button>

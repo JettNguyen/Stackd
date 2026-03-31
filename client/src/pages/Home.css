@@ -1,7 +1,7 @@
 .home-page {
-    min-height: 100vh;
+    min-height: 100dvh;
     background-color: var(--bg-primary);
-    padding: 25px 20px;
+    padding: 25px 25px;
     color: var(--text-primary);
     margin-bottom: 150px;
 }
@@ -289,6 +289,8 @@
     .add-button:hover {
         transform: translateY(-2px);
         background-color: var(--bg-tertiary);
+        filter: brightness(0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .stack-card:hover .stack-layer-front {
@@ -306,7 +308,19 @@
     .see-more-button:hover {
         border-color: var(--color-secondary);
         background-color: var(--bg-overlay-mid);
+        filter: brightness(0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
+}
+
+.add-button:active,
+.see-more-button:active,
+.stack-card:active,
+.class-card:active {
+    background: var(--bg-overlay-mid);
+    filter: brightness(0.95);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    transform: scale(0.95);
 }
 
 @media (min-width: 650px) {
@@ -374,7 +388,6 @@
         font-size: 40px;
     }
 
-    /* Loader placeholder is in-page and avoids disrupting new transitions */
     .home-loading-delayed-placeholder {
         min-height: 220px;
         display: grid;

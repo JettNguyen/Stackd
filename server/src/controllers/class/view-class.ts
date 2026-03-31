@@ -55,6 +55,7 @@ const view: RequestHandler = async (req, res, next) => {
           message: 'Class Found!',
           statusCode: 200,
           name: selectedClass.name,
+          visibility: selectedClass.visibility,
           stacks: stacks,
           role: role,
           users: users
@@ -66,6 +67,7 @@ const view: RequestHandler = async (req, res, next) => {
       message: 'Class Found!',
       statusCode: 200,
       name: selectedClass.name,
+      visibility: selectedClass.visibility,
       stacks: stacks,
       role: role
     })

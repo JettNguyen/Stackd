@@ -118,19 +118,16 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      <Breadcrumbs items={[{ label: 'Home' }]} />
-
       {isLoading ? (
         isLoadingVisible ? (
           <div className="home-loading" role="status" aria-live="polite">
             <div className="home-loading-spinner"></div>
             <p>Loading home...</p>
           </div>
-        ) : (
-          <div className="home-loading-delayed-placeholder" aria-hidden="true" />
-        )
+        ) : null
       ) : (
-        <>
+        <div className="content-appear">
+          <Breadcrumbs items={[{ label: 'Home' }]} />
           <section className="stacks-section">
             <div className="section-header">
               <h2>Your Stacks</h2>
@@ -207,7 +204,7 @@ const Home = () => {
             </div>
             )}
           </section>
-        </>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 .new-stack-page {
-	min-height: 100vh;
+	min-height: 100dvh;
 	background-color: var(--bg-primary);
 	padding: 25px 20px 40px;
 	color: var(--text-primary);
@@ -276,7 +276,6 @@
 	justify-content: center;
 	white-space: pre-wrap;
 	word-break: break-word;
-	outline: none;
 	filter: drop-shadow(0 0 5px rgb(0, 0, 0));
 }
 
@@ -353,7 +352,7 @@
 	min-height: 65px;
 	margin-top: 25px;
 	position: sticky;
-	bottom: 20px;
+	bottom: calc(20px + env(safe-area-inset-bottom));
 	z-index: 20;
 	border-radius: 15px;
 	border: none;

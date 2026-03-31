@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronLeft, faUser, faFolder } from '@fortawesome/free-solid-svg-icons';
-import logo from '../assets/logo.png';
+import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
+import Breadcrumbs from '../components/Breadcrumbs';
+import { apiRequest, getAuthToken } from '../utils/api';
 import './NewClass.css';
 
 const NewClass = () => {
@@ -13,29 +14,52 @@ const NewClass = () => {
   const [className, setClassName] = useState(initialClassName);
   const [isStacksOpen, setIsStacksOpen] = useState(false);
   const [selectedStackIds, setSelectedStackIds] = useState([]);
-  
-  const stacks = useMemo(
-    () => [
-      { id: 1, name: 'Midterm' },
-      { id: 2, name: 'Final' },
-      { id: 3, name: 'Module 5' },
-      { id: 4, name: 'Unit 6 Vocabulary' },
-      { id: 5, name: 'Module 4' },
-      { id: 6, name: 'Module 3' },
-      { id: 7, name: 'Module 1' },
-      { id: 8, name: 'Module 2' },
-    ],
-    []
-  );
+  const [stacks, setStacks] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState('');
+
+  useEffect(() => {
+    if (!getAuthToken()) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadStacks = async () => {
+      try {
+        const response = await apiRequest('/account/user');
+
+        if (!isMounted) {
+          return;
+        }
+
+        const accountStacks = Array.isArray(response?.stacks) ? response.stacks : [];
+        setStacks(
+          accountStacks.map((stack) => ({
+            id: stack._id,
+            name: stack.name,
+          }))
+        );
+      } catch {
+        if (isMounted) {
+          setStacks([]);
+        }
+      }
+    };
+
+    loadStacks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const selectedStacks = useMemo(
     () => stacks.filter((stack) => selectedStackIds.includes(stack.id)),
     [stacks, selectedStackIds]
   );
 
-  const handleBack = () => {
-    navigate(-1);
-  };
 
   const toggleStackSelection = (stackId) => {
     setSelectedStackIds((prev) =>
@@ -43,23 +67,52 @@ const NewClass = () => {
     );
   };
 
+  const handleCreateClass = async () => {
+    const name = className.trim();
+
+    if (!name) {
+      setFeedback('Please enter a class name before saving.');
+      return;
+    }
+
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedback('');
+
+    try {
+      const response = await apiRequest('/class/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          stackIds: selectedStackIds,
+        }),
+      });
+
+      const classId = response?.data?._id;
+
+      if (classId) {
+        navigate(`/class/${classId}`);
+      } else {
+        navigate('/home');
+      }
+    } catch (error) {
+      setFeedback(error?.message || 'Unable to create class right now.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="new-class-page">
-      <header className="new-class-header">
-        <button className="back-button" onClick={handleBack}>
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </button>
-
-        <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-          <img src={logo} alt="Stackd Logo" className="logo-image" />
-          <h1 className="logo-text">Stackd</h1>
-        </div>
-
-        <button className="profile-button" onClick={() => navigate('/profile')}>
-          <FontAwesomeIcon icon={faUser} />
-        </button>
-      </header>
-
+      <Breadcrumbs
+        items={[
+          { label: 'Home', to: '/home' },
+          { label: 'New Class' },
+        ]}
+      />
       <div className="new-class-content">
         <div className="class-preview">
           <div className="new-class-card">
@@ -119,11 +172,13 @@ const NewClass = () => {
             </div>
           )}
         </section>
+
+        {feedback && <p className="new-class-feedback">{feedback}</p>}
       </div>
 
       <div className="new-class-actions-bar">
-        <button className="confirm-class-button" type="button">
-          Confirm
+        <button className="confirm-class-button" type="button" onClick={handleCreateClass} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Confirm'}
         </button>
       </div>
     </div>

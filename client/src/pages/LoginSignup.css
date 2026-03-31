@@ -1,5 +1,5 @@
 .login-signup-page {
-    min-height: 100vh;
+    min-height: 100dvh;
     background-color: var(--bg-primary);
     padding: 100px 20px;
     color: var(--text-primary);
@@ -76,6 +76,14 @@
     color: var(--color-primary);
     font-size: 14px;
     margin-top: 10px;
+}
+
+.login-signup-loading {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 10px;
+    font-style: italic;
+    letter-spacing: 0.5px;
 }
 
 .login-button { 

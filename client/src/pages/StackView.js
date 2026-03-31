@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -40,6 +41,17 @@ const StackView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const stackBreadcrumbItems = useMemo(() => {
+    const items = [{ label: 'Home', to: '/home' }];
+
+    if (stack?.className) {
+      items.push({ label: stack.className, to: '/class' });
+    }
+
+    items.push({ label: stack?.name || 'Stack' });
+    return items;
+  }, [stack]);
 
   const copyTimeoutRef = useRef(null);
 
@@ -236,22 +248,12 @@ const StackView = () => {
   if (isLoading) {
     return (
       <div className="stack-view-page">
-        <div className="stack-view-content">
-          <Breadcrumbs
-            items={[
-              { label: 'Home', to: '/home' },
-              { label: 'Stack' },
-            ]}
-          />
-          {isLoadingVisible ? (
-            <div className="stack-view-loading" role="status" aria-live="polite">
-              <div className="stack-view-loading-spinner"></div>
-              <p>Loading stack...</p>
-            </div>
-          ) : (
-            <div className="stack-view-loading-delayed-placeholder" aria-hidden="true" />
-          )}
-        </div>
+        {isLoadingVisible && (
+          <div className="stack-view-loading" role="status" aria-live="polite">
+            <div className="stack-view-loading-spinner"></div>
+            <p>Loading stack...</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -260,12 +262,7 @@ const StackView = () => {
     return (
       <div className="stack-view-page">
         <div className="stack-view-content">
-          <Breadcrumbs
-            items={[
-              { label: 'Home', to: '/home' },
-              { label: 'Stack' },
-            ]}
-          />
+          <Breadcrumbs items={stackBreadcrumbItems} />
           <p className="profile-empty">Stack not found.</p>
         </div>
       </div>
@@ -276,13 +273,8 @@ const StackView = () => {
 
   return (
     <div className="stack-view-page">
-      <div className="stack-view-content">
-        <Breadcrumbs
-          items={[
-            { label: 'Home', to: '/home' },
-            { label: stack.name || 'Stack' },
-          ]}
-        />
+      <div className="stack-view-content content-appear">
+        <Breadcrumbs items={stackBreadcrumbItems} />
         {!isStudyMode ? (
           <div className="stack-browse-mode">
             <div className="stack-actions">
@@ -449,22 +441,25 @@ const StackView = () => {
               </button>
             </div>
 
-            <div className="study-actions-bar">
-              <button
-                type="button"
-                className={`study-action-btn star-btn ${currentCard && cardStatuses[currentCard.id] === 'star' ? 'active' : ''}`}
-                onClick={handleStar}
-              >
-                <FontAwesomeIcon icon={faStar} />
-              </button>
-              <button
-                type="button"
-                className={`study-action-btn check-btn ${currentCard && cardStatuses[currentCard.id] === 'check' ? 'active' : ''}`}
-                onClick={handleCheckCard}
-              >
-                <FontAwesomeIcon icon={faCheck} />
-              </button>
-            </div>
+            {createPortal(
+              <div className="study-actions-bar">
+                <button
+                  type="button"
+                  className={`study-action-btn star-btn ${currentCard && cardStatuses[currentCard.id] === 'star' ? 'active' : ''}`}
+                  onClick={handleStar}
+                >
+                  <FontAwesomeIcon icon={faStar} />
+                </button>
+                <button
+                  type="button"
+                  className={`study-action-btn check-btn ${currentCard && cardStatuses[currentCard.id] === 'check' ? 'active' : ''}`}
+                  onClick={handleCheckCard}
+                >
+                  <FontAwesomeIcon icon={faCheck} />
+                </button>
+              </div>,
+              document.body
+            )}
           </div>
         )}
       </div>

@@ -123,20 +123,11 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="profile-page">
-        <Breadcrumbs
-          items={[
-            { label: 'Home', to: '/home' },
-            { label: 'Profile' },
-          ]}
-        />
-
-        {isLoadingVisible ? (
+        {isLoadingVisible && (
           <div className="home-loading" role="status" aria-live="polite">
             <div className="home-loading-spinner"></div>
             <p>Loading profile...</p>
           </div>
-        ) : (
-          <div className="home-loading-delayed-placeholder" aria-hidden="true" />
         )}
       </div>
     );
@@ -174,13 +165,13 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
+      <div className="content-appear">
       <Breadcrumbs
         items={[
           { label: 'Home', to: '/home' },
           { label: 'My Profile' },
         ]}
       />
-
       <div className="profile-headline">
         <h1>{account.username}</h1>
         <p>@{account.username}</p>
@@ -264,6 +255,8 @@ const Profile = () => {
         <button type="button" className="profile-logout-button" onClick={handleLogout}>
           Log out
         </button>
+      </div>
+
       </div>
 
       {feedback && (

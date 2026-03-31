@@ -1,8 +1,9 @@
 .stack-view-page {
-    min-height: 100vh;
+    min-height: 100dvh;
     background-color: var(--bg-primary);
-    padding: 25px 20px;
+    padding: 25px 20px 0 20px;
     color: var(--text-primary);
+    padding-top: 25px;
 }
 
 .profile-button-placeholder {
@@ -81,7 +82,7 @@
 
 .copy-toast {
     position: fixed;
-    top: 120px;
+    top: calc(120px + env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--bg-card);
@@ -357,9 +358,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 70vh;
+    min-height: 70dvh;
     gap: 10px;
-    padding-bottom: 140px;
+    padding-bottom: calc(140px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 .study-card-display {
@@ -419,7 +421,7 @@
 }
 
 .study-flashcard:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
 .study-flashcard.flipping {
@@ -473,7 +475,7 @@
 .study-actions-bar {
     display: flex;
     gap: 20px;
-    padding: 20px;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
     background-color: var(--bg-overlay-strong);
     border-radius: 20px 20px 0 0;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -483,6 +485,9 @@
     bottom: 0;
     justify-content: center;
     z-index: 1000;
+    width: 100dvw;
+    max-width: 100dvw;
+    margin-left: calc(-1 * (100dvw - 100%) / 2);
 }
 
 .study-action-btn {
@@ -538,10 +543,14 @@
 @media (hover: hover) and (pointer: fine) {
     .stack-side-button:hover {
         background-color: var(--bg-tertiary);
+        filter: brightness(0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .view-button:hover {
         background-color: var(--bg-tertiary);
+        filter: brightness(0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .view-button.study-active:hover {
@@ -568,7 +577,22 @@
     .stack-settings-button:hover {
         background-color: var(--bg-tertiary);
         transform: scale(1.05);
+        filter: brightness(0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
+}
+
+.stack-side-button:active,
+.view-button:active,
+.status-btn-inline:active,
+.nav-arrow:active:not(:disabled),
+.study-flashcard:active,
+.study-action-btn:active,
+.stack-settings-button:active {
+  background: var(--bg-overlay-mid);
+  filter: brightness(0.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  transform: scale(0.95);
 }
 
 @media (min-width: 650px) {
