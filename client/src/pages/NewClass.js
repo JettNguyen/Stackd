@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { apiRequest } from '../utils/api';
+import { apiRequest, getAuthToken } from '../utils/api';
 import './NewClass.css';
 
 
@@ -13,19 +13,42 @@ const NewClass = () => {
   const initialClassName = location.state?.className ?? '';
 
   const [className, setClassName] = useState(initialClassName);
-  const [isStacksOpen, setIsStacksOpen] = useState(false);
-  const [selectedStackIds, setSelectedStackIds] = useState([]);
   const [stacks, setStacks] = useState([]);
+  const [selectedStackIds, setSelectedStackIds] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
-    apiRequest('/account/user')
-      .then((res) => setStacks(res.stacks || []))
-      .catch(() => setStacks([]));
-  }, []);
+    if (!getAuthToken()) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  const selectedStacks = stacks.filter((stack) => selectedStackIds.includes(stack._id));
+    let isMounted = true;
+
+    const loadStacks = async () => {
+      try {
+        const response = await apiRequest('/account/user');
+
+        if (!isMounted) return;
+
+        const accountStacks = Array.isArray(response?.stacks) ? response.stacks : [];
+        setStacks(
+          accountStacks.map((stack) => ({ id: stack._id, name: stack.name }))
+        );
+      } catch {
+        if (isMounted) setStacks([]);
+      }
+    };
+
+    loadStacks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const selectedStacks = stacks.filter((stack) => selectedStackIds.includes(stack.id));
 
   const toggleStackSelection = (stackId) => {
     setSelectedStackIds((prev) =>
@@ -34,20 +57,33 @@ const NewClass = () => {
   };
 
   const handleCreateClass = async () => {
-    if (!className.trim()) {
-      setFeedback('Please enter a class name.');
+    const name = className.trim();
+
+    if (!name) {
+      setFeedback('Please enter a class name before saving.');
       return;
     }
+
+    if (isSaving) return;
+
     setIsSaving(true);
     setFeedback('');
+
     try {
-      await apiRequest('/class/create', {
+      const response = await apiRequest('/class/create', {
         method: 'POST',
-        body: JSON.stringify({ name: className.trim() }),
+        body: JSON.stringify({ name, stackIds: selectedStackIds }),
       });
-      navigate('/home');
-    } catch (err) {
-      setFeedback(err.message || 'Failed to create class.');
+
+      const classId = response?.data?._id;
+
+      if (classId) {
+        navigate(`/class/${classId}`);
+      } else {
+        navigate('/home');
+      }
+    } catch (error) {
+      setFeedback(error?.message || 'Unable to create class right now.');
     } finally {
       setIsSaving(false);
     }
@@ -82,54 +118,38 @@ const NewClass = () => {
             placeholder="Class Name"
           />
         </div>
-        <section className={`stacks-section ${isStacksOpen ? 'open' : 'collapsed'}`}>
-          <button
-            type="button"
-            className="stacks-toggle"
-            onClick={() => setIsStacksOpen((prev) => !prev)}
-          >
-            <span>Add Stacks:</span>
-            <span className="stacks-chevron">
-              <FontAwesomeIcon icon={faChevronDown} />
-            </span>
-          </button>
 
+        <section className={`stacks-section ${stacks.length > 0 ? 'open' : 'collapsed'}`}>
           <div className="stacks-summary">
             {selectedStacks.length === 0
               ? 'Select one or more stacks'
               : selectedStacks.map((stack) => stack.name).join(', ')}
           </div>
 
-          {isStacksOpen && (
-            <div className="stacks-menu" role="listbox" aria-multiselectable="true">
-              {stacks.map((stack) => {
-                const isSelected = selectedStackIds.includes(stack._id);
-                return (
-                  <button
-                    key={stack._id}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    className={`stack-option ${isSelected ? 'selected' : ''}`}
-                    onClick={() => toggleStackSelection(stack._id)}
-                  >
-                    <span className="stack-option-name">{stack.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <div className="stacks-menu" role="listbox" aria-multiselectable="true">
+            {stacks.map((stack) => {
+              const isSelected = selectedStackIds.includes(stack.id);
+              return (
+                <button
+                  key={stack.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`stack-option ${isSelected ? 'selected' : ''}`}
+                  onClick={() => toggleStackSelection(stack.id)}
+                >
+                  <span className="stack-option-name">{stack.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </section>
+
+        {feedback && <p className="new-class-feedback">{feedback}</p>}
       </div>
 
       <div className="new-class-actions-bar">
-        {feedback && <div className="new-class-feedback">{feedback}</div>}
-        <button
-          className="confirm-class-button"
-          type="button"
-          onClick={handleCreateClass}
-          disabled={isSaving}
-        >
+        <button className="confirm-class-button" type="button" onClick={handleCreateClass} disabled={isSaving}>
           {isSaving ? 'Saving...' : 'Confirm'}
         </button>
       </div>

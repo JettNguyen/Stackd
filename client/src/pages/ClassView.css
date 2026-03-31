@@ -62,6 +62,43 @@
 	min-height: 20px;
 }
 
+.class-settings-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.class-settings-input,
+.class-settings-select {
+	width: 100%;
+	padding: 10px 12px;
+	border-radius: 12px;
+	border: 2px solid var(--text-secondary);
+	background: var(--bg-card);
+	color: var(--text-primary);
+	font-size: 14px;
+}
+
+.class-settings-select {
+	min-width: 100px;
+	text-transform: capitalize;
+}
+
+.modal-member-remove {
+	margin-left: 8px;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 999px;
+	background: var(--bg-overlay-mid);
+	color: var(--text-primary);
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .class-view-page .stack-action-buttons {
 	margin-top: -10px;
 	margin-bottom: -10px;
@@ -69,7 +106,7 @@
 
 .class-view-stacks-grid {
 	grid-template-columns: repeat(2, 1fr);
-	gap: 15px;
+	gap: 40px 15px;
 	align-items: stretch;
 	padding: 0;
 }
@@ -78,6 +115,34 @@
 	aspect-ratio: 1/0.75;
 	padding-bottom: 0;
 	margin-bottom: 0;
+	position: relative;
+}
+
+.class-view-stacks-grid .stack-card .stack-content {
+	padding: 10px;
+}
+
+.stack-remove-button {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 35px;
+	height: 35px;
+	border-radius: 25px;
+	border: none;
+	background: var(--bg-overlay-mid);
+	color: var(--text-primary);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 3;
+	transition: transform 0.12s ease, background-color 0.12s ease;
+}
+
+.stack-remove-button:hover {
+	transform: scale(1.06);
+	background: var(--bg-overlay-strong);
 }
 
 .class-view-add-tile {

@@ -1,33 +1,55 @@
 import { type RequestHandler } from 'express'
+import joi from '../../utils/joi'
 import Class from '../../models/Class'
+import Stack from '../../models/Stack'
 
 const deleteClass: RequestHandler = async (req, res, next) => {
-  try {
-    const { uid } = req.auth || {}
-    const { classId } = req.body
+	try {
+		const { uid } = req.auth || {}
 
-    if (!classId) {
-      return next({ statusCode: 400, message: 'Missing classId' })
-    }
+		const validationError = await joi.validate(
+			{
+				classId: joi.instance.string().required(),
+			},
+			req.body
+		)
 
-    const classDoc = await Class.findById(classId)
+		if (validationError) return next(validationError)
 
-    if (!classDoc) {
-      return next({ statusCode: 404, message: 'Class not found' })
-    }
+		const classId = String(req.body.classId || '')
+		const selectedClass = await Class.findById(classId)
 
-    const isOwner = classDoc.users.some(u => String(u.account) === uid && u.role === 'owner')
+		if (!selectedClass) {
+			return next({
+				statusCode: 404,
+				message: 'Could not find class',
+			})
+		}
 
-    if (!isOwner) {
-      return next({ statusCode: 403, message: 'Only the owner can delete this class' })
-    }
+		const membership = selectedClass.users.find(
+			(user) => (user.account as any).toString() === uid?.toString()
+		)
 
-    await classDoc.deleteOne()
+		if (!membership || membership.role !== 'owner') {
+			return next({
+				statusCode: 403,
+				message: 'Only the class owner can delete this class',
+			})
+		}
 
-    res.status(200).json({ message: 'Class deleted successfully' })
-  } catch (error) {
-    next(error)
-  }
+		await Promise.all([
+			Stack.updateMany({ class: selectedClass._id }, { $unset: { class: '' } }),
+			Class.deleteOne({ _id: selectedClass._id }),
+		])
+
+		return next({
+			statusCode: 200,
+			message: 'Class deleted successfully',
+		})
+	} catch (error) {
+		next(error)
+	}
 }
 
 export default deleteClass
+
