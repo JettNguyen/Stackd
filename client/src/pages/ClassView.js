@@ -507,7 +507,14 @@ const ClassView = () => {
                 <FontAwesomeIcon icon={faFolder} className="folder-icon" />
               </div>
             </div>
-
+            <button
+              type="button"
+              className="stack-side-button class-side-button-add"
+              onClick={handleAddStack}
+              aria-label="Add stack to class"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+            </button>
             
           </div>
 
@@ -583,7 +590,6 @@ const ClassView = () => {
                   );
                 });
 
-                // Insert add/see-more tile after the 3rd position when collapsed, otherwise show add tile
                 if (shouldCollapse) {
                   items.push(
                     <button
