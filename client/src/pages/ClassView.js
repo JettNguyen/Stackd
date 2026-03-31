@@ -15,7 +15,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
-import { apiRequest } from '../utils/api';
+import { apiRequest, getAuthToken } from '../utils/api';
 import './Home.css';
 import './StackView.css';
 import './ClassView.css';
@@ -32,6 +32,17 @@ const ClassView = () => {
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAddStackModalOpen, setIsAddStackModalOpen] = useState(false);
+  const [userStacks, setUserStacks] = useState([]);
+  const [selectedAddStackId, setSelectedAddStackId] = useState('');
+  const [addStackFeedback, setAddStackFeedback] = useState('');
+  const [isAddingStack, setIsAddingStack] = useState(false);
+
+  const handleUnavailableAction = (action) => {
+    setActionMessage(`${action} is currently unavailable.`);
+    setTimeout(() => setActionMessage(''), 2000);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -43,9 +54,7 @@ const ClassView = () => {
 
       try {
         const response = await apiRequest(`/class/view?class=${id}`);
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
 
         setClassItem({ id, name: response?.name || 'Class' });
         setStacks(
@@ -79,9 +88,7 @@ const ClassView = () => {
   }, [id]);
 
   useEffect(() => {
-    if (!isLinkCopied) {
-      return undefined;
-    }
+    if (!isLinkCopied) return undefined;
 
     const timer = setTimeout(() => {
       setIsLinkCopied(false);
@@ -110,23 +117,83 @@ const ClassView = () => {
     setIsLinkCopied(true);
   };
 
-  const handleAddStack = () => {
-    if (!classItem) {
+  const handleAddStack = async () => {
+    if (!classItem) return;
+    setIsAddStackModalOpen(true);
+    setAddStackFeedback('');
+    setIsAddingStack(false);
+    setSelectedAddStackId('');
+    try {
+      const res = await apiRequest('/account/user');
+      const classStackIds = new Set(stacks.map(s => s.id));
+      setUserStacks((res.stacks || []).filter(s => !classStackIds.has(s._id)));
+    } catch {
+      setUserStacks([]);
+    }
+  };
+
+  const handleAddExistingStack = async (stackId) => {
+    if (!classItem || !stackId) return;
+    setIsAddingStack(true);
+    setAddStackFeedback('');
+    try {
+      await apiRequest(`/class/add-stack`, {
+        method: 'POST',
+        body: JSON.stringify({ classId: classItem.id, stackId }),
+      });
+      setAddStackFeedback('Stack added!');
+      setTimeout(() => {
+        setIsAddStackModalOpen(false);
+        window.location.reload();
+      }, 800);
+    } catch (err) {
+      setAddStackFeedback(err.message || 'Failed to add stack.');
+    } finally {
+      setIsAddingStack(false);
+    }
+  };
+
+  const handleCreateNewStack = () => {
+    setIsAddStackModalOpen(false);
+    navigate('/stack/new', { state: { selectedClassId: classItem.id } });
+  };
+
+  const handleDeleteClass = () => {
+    if (!classItem) return;
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteClass = async () => {
+    if (!classItem) return;
+    setIsDeleteModalOpen(false);
+    setActionMessage('Deleting class...');
+
+    const token = getAuthToken();
+    if (!token) {
+      setActionMessage('You must be signed in to delete a class.');
       return;
     }
 
-    navigate('/stack/new', {
-      state: {
-        selectedClassId: classItem.id,
-      },
-    });
-  };
+    if (!classItem.id) {
+      setActionMessage('Missing class identifier.');
+      return;
+    }
 
-  const handleUnavailableAction = (label) => {
-    setActionMessage(`${label} will be available once class action routes are added.`);
-    setTimeout(() => {
-      setActionMessage('');
-    }, 2000);
+    try {
+      await apiRequest('/class/delete', {
+        method: 'POST',
+        body: JSON.stringify({ classId: classItem.id }),
+      });
+      setActionMessage('Class deleted.');
+      setTimeout(() => navigate('/home'), 1000);
+    } catch (err) {
+      const msg = err?.payload?.message || err?.message || 'Failed to delete class.';
+      if (err?.status === 403) {
+        setActionMessage('You are not permitted to delete this class.');
+      } else {
+        setActionMessage(msg);
+      }
+    }
   };
 
   const isOwner = role === 'owner';
@@ -168,6 +235,86 @@ const ClassView = () => {
   return (
     <div className="class-view-page">
       <div className="class-view-content content-appear">
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Delete Class"
+        >
+          <p>Are you sure you want to delete this class? This action cannot be undone.</p>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="switch-button"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="login-button"
+              onClick={confirmDeleteClass}
+            >
+              Delete Class
+            </button>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={isAddStackModalOpen}
+          onClose={() => setIsAddStackModalOpen(false)}
+          title="Add Stack to Class"
+        >
+          {userStacks.length > 0 ? (
+            <>
+              <div className="add-stack-select-wrapper">
+                <select
+                  className="add-stack-select"
+                  value={selectedAddStackId}
+                  onChange={(e) => setSelectedAddStackId(e.target.value)}
+                  disabled={isAddingStack}
+                >
+                  <option value="">Select a stack...</option>
+                  {userStacks.map((stack) => (
+                    <option key={stack._id} value={stack._id}>{stack.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="add-stack-actions">
+                <button
+                  type="button"
+                  className="add-stack-secondary"
+                  onClick={handleCreateNewStack}
+                  disabled={isAddingStack}
+                >
+                  Create New Stack
+                </button>
+                {selectedAddStackId && (
+                  <button
+                    type="button"
+                    className="add-stack-primary"
+                    onClick={() => handleAddExistingStack(selectedAddStackId)}
+                    disabled={isAddingStack}
+                  >
+                    {isAddingStack ? 'Adding...' : 'Add Stack'}
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="add-stack-actions">
+              <button
+                type="button"
+                className="add-stack-primary"
+                onClick={handleCreateNewStack}
+                disabled={isAddingStack}
+              >
+                Create New Stack
+              </button>
+            </div>
+          )}
+          {addStackFeedback && <p className="add-stack-feedback">{addStackFeedback}</p>}
+        </Modal>
+
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/home' },
@@ -267,7 +414,6 @@ const ClassView = () => {
       </div>
 
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Class Settings">
-        {/* Membership Section */}
         <div className="modal-section">
           <h3 className="modal-section-title">Membership</h3>
           <button
@@ -285,7 +431,6 @@ const ClassView = () => {
           </button>
         </div>
 
-        {/* Edit Section */}
         {canEdit && (
           <div className="modal-section">
             <h3 className="modal-section-title">Editing</h3>
@@ -305,7 +450,6 @@ const ClassView = () => {
           </div>
         )}
 
-        {/* Owner Section */}
         {isOwner && (
           <div className="modal-section">
             <h3 className="modal-section-title">Administration</h3>
@@ -338,7 +482,6 @@ const ClassView = () => {
           </div>
         )}
 
-        {/* Danger Zone */}
         {isOwner && (
           <div className="modal-section modal-danger-section">
             <h3 className="modal-section-title">Danger Zone</h3>
@@ -346,8 +489,8 @@ const ClassView = () => {
               type="button"
               className="modal-option-button"
               onClick={() => {
-                handleUnavailableAction('Delete class');
                 setIsSettingsOpen(false);
+                handleDeleteClass();
               }}
             >
               <div className="modal-option-icon">
@@ -358,7 +501,6 @@ const ClassView = () => {
           </div>
         )}
 
-        {/* Members List */}
         {isOwner && users.length > 0 && (
           <div className="modal-section">
             <h3 className="modal-section-title">Class Members ({users.length})</h3>

@@ -5,10 +5,8 @@ class Joi {
 
   async validate(schema: Record<string, any>, body: Record<string, any>) {
     try {
-      await this.instance.object(schema).validateAsync(body)
+      await this.instance.object(schema).unknown(true).validateAsync(body)
     } catch (error: any) {
-      console.log('❌ Joi validation error:', error.message)
-
       return {
         statusCode: 400,
         message: error.message,

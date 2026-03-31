@@ -1,42 +1,56 @@
-import React, { useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { apiRequest } from '../utils/api';
 import './NewClass.css';
+
 
 const NewClass = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialClassName = location.state?.className ?? '';
 
   const [className, setClassName] = useState(initialClassName);
   const [isStacksOpen, setIsStacksOpen] = useState(false);
   const [selectedStackIds, setSelectedStackIds] = useState([]);
-  
-  const stacks = useMemo(
-    () => [
-      { id: 1, name: 'Midterm' },
-      { id: 2, name: 'Final' },
-      { id: 3, name: 'Module 5' },
-      { id: 4, name: 'Unit 6 Vocabulary' },
-      { id: 5, name: 'Module 4' },
-      { id: 6, name: 'Module 3' },
-      { id: 7, name: 'Module 1' },
-      { id: 8, name: 'Module 2' },
-    ],
-    []
-  );
+  const [stacks, setStacks] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState('');
 
-  const selectedStacks = useMemo(
-    () => stacks.filter((stack) => selectedStackIds.includes(stack.id)),
-    [stacks, selectedStackIds]
-  );
+  useEffect(() => {
+    apiRequest('/account/user')
+      .then((res) => setStacks(res.stacks || []))
+      .catch(() => setStacks([]));
+  }, []);
 
+  const selectedStacks = stacks.filter((stack) => selectedStackIds.includes(stack._id));
 
   const toggleStackSelection = (stackId) => {
     setSelectedStackIds((prev) =>
       prev.includes(stackId) ? prev.filter((id) => id !== stackId) : [...prev, stackId]
     );
+  };
+
+  const handleCreateClass = async () => {
+    if (!className.trim()) {
+      setFeedback('Please enter a class name.');
+      return;
+    }
+    setIsSaving(true);
+    setFeedback('');
+    try {
+      await apiRequest('/class/create', {
+        method: 'POST',
+        body: JSON.stringify({ name: className.trim() }),
+      });
+      navigate('/home');
+    } catch (err) {
+      setFeedback(err.message || 'Failed to create class.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -89,15 +103,15 @@ const NewClass = () => {
           {isStacksOpen && (
             <div className="stacks-menu" role="listbox" aria-multiselectable="true">
               {stacks.map((stack) => {
-                const isSelected = selectedStackIds.includes(stack.id);
+                const isSelected = selectedStackIds.includes(stack._id);
                 return (
                   <button
-                    key={stack.id}
+                    key={stack._id}
                     type="button"
                     role="option"
                     aria-selected={isSelected}
                     className={`stack-option ${isSelected ? 'selected' : ''}`}
-                    onClick={() => toggleStackSelection(stack.id)}
+                    onClick={() => toggleStackSelection(stack._id)}
                   >
                     <span className="stack-option-name">{stack.name}</span>
                   </button>
@@ -109,8 +123,14 @@ const NewClass = () => {
       </div>
 
       <div className="new-class-actions-bar">
-        <button className="confirm-class-button" type="button">
-          Confirm
+        {feedback && <div className="new-class-feedback">{feedback}</div>}
+        <button
+          className="confirm-class-button"
+          type="button"
+          onClick={handleCreateClass}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Saving...' : 'Confirm'}
         </button>
       </div>
     </div>

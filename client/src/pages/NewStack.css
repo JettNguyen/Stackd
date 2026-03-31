@@ -480,8 +480,26 @@
 	text-align: left;
 }
 
+.new-stack-modal-class-button-new-class {
+	padding: 15px 20px;
+	border-radius: 10px;
+	border: 2px dashed var(--border-muted);
+	background-color: var(--bg-card-secondary);
+	color: var(--text-primary);
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.25s ease-in-out;
+	text-align: left;
+}
+
 .new-stack-modal-class-button:active {
 	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.new-stack-modal-class-button-new-class:active {
+	background-color: var(--bg-card);
 	border-color: var(--color-primary);
 }
 
@@ -489,6 +507,27 @@
 	background-color: var(--color-primary);
 	border-color: var(--color-primary);
 	color: var(--text-primary);
+}
+
+.new-stack-modal-class-button-new-class.selected {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--text-primary);
+}
+
+.new-stack-modal-class-name-input {
+	width: 100%;
+	padding: 12px 15px;
+	border-radius: 10px;
+	border: 2px solid var(--color-primary);
+	background-color: var(--bg-card);
+	color: var(--text-primary);
+	font-size: 15px;
+	margin-bottom: 20px;
+}
+
+.new-stack-modal-class-name-input::placeholder {
+	color: var(--text-secondary);
 }
 
 .new-stack-modal-actions {
@@ -555,4 +594,10 @@
 	.new-stack-modal-save-button:hover {
 		background-color: var(--color-primary-dark);
 	}
+
+	.new-stack-modal-class-button-new-class:hover {
+		border-color: var(--color-primary);
+		background-color: var(--color-primary-dark);
+	}
+
 }

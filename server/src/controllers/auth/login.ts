@@ -10,6 +10,7 @@ const login: RequestHandler = async (req, res, next) => {
       {
         username: joi.instance.string().required(),
         password: joi.instance.string().required(),
+        email: joi.instance.string().email().optional(),
       },
       req.body
     )
@@ -21,7 +22,6 @@ const login: RequestHandler = async (req, res, next) => {
     const username = String(req.body.username || '').trim().toLowerCase()
     const password = String(req.body.password || '')
 
-    // Get account from DB, and verify existance
     const account = await Account.findOne({ username })
 
     if (!account) {
@@ -31,7 +31,6 @@ const login: RequestHandler = async (req, res, next) => {
       })
     }
 
-    // Verify password hash
     const passOk = await crypt.validate(password, account.password)
 
     if (!passOk) {
@@ -41,10 +40,7 @@ const login: RequestHandler = async (req, res, next) => {
       })
     }
 
-    // Generate access token
     const token = jwt.signToken({ uid: account._id, username: account.username })
-
-    // Remove password from response data
     const { password: _, ...accountData } = account.toObject()
 
     res.status(200).json({

@@ -41,6 +41,7 @@ const StackView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const stackBreadcrumbItems = useMemo(() => {
     const items = [{ label: 'Home', to: '/home' }];
@@ -235,10 +236,22 @@ const StackView = () => {
   };
 
   const handleUnavailableAction = (label) => {
-    setActionMessage(`${label} will be available once stack action routes are added.`);
-    setTimeout(() => {
-      setActionMessage('');
-    }, 2000);
+    setActionMessage(`${label} is currently unavailable.`);
+    setTimeout(() => setActionMessage(''), 2000);
+  };
+
+  const confirmDeleteStack = async () => {
+    setIsDeleteModalOpen(false);
+    setActionMessage('Deleting stack...');
+    try {
+      await apiRequest('/stack/delete', {
+        method: 'POST',
+        body: JSON.stringify({ stackId: stack.id }),
+      });
+      navigate('/home');
+    } catch (err) {
+      setActionMessage(err?.payload?.message || err?.message || 'Failed to delete stack.');
+    }
   };
 
   const isOwner = role === 'owner';
@@ -464,6 +477,30 @@ const StackView = () => {
         )}
       </div>
 
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Stack"
+      >
+        <p>Are you sure you want to delete this stack? This action cannot be undone.</p>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="switch-button"
+            onClick={() => setIsDeleteModalOpen(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="login-button"
+            onClick={confirmDeleteStack}
+          >
+            Delete Stack
+          </button>
+        </div>
+      </Modal>
+
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Stack Settings">
         {/* Membership Section */}
         <div className="modal-section">
@@ -536,7 +573,6 @@ const StackView = () => {
           </div>
         )}
 
-        {/* Danger Zone */}
         {isOwner && (
           <div className="modal-section modal-danger-section">
             <h3 className="modal-section-title">Danger Zone</h3>
@@ -544,8 +580,8 @@ const StackView = () => {
               type="button"
               className="modal-option-button"
               onClick={() => {
-                handleUnavailableAction('Delete stack');
                 setIsSettingsOpen(false);
+                setIsDeleteModalOpen(true);
               }}
             >
               <div className="modal-option-icon">

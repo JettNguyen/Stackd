@@ -8,47 +8,43 @@ import { apiRequest, clearAuthToken, getAuthToken } from '../utils/api';
 import './Home.css';
 
 const getCollapsedCardCount = () => {
-  if (typeof window === 'undefined') {
-    return 3;
-  }
-
-  if (window.innerWidth >= 1250) {
-    return 7;
-  }
-
-  if (window.innerWidth >= 650) {
-    return 5;
-  }
-
+  if (typeof window === 'undefined') return 3;
+  if (window.innerWidth >= 1250) return 7;
+  if (window.innerWidth >= 650) return 5;
   return 3;
+};
+
+const getRowSize = () => {
+  if (typeof window === 'undefined') return 2;
+  if (window.innerWidth >= 1250) return 4;
+  if (window.innerWidth >= 650) return 3;
+  return 2;
 };
 
 const Home = () => {
   const navigate = useNavigate();
-  const [showMoreStacks, setShowMoreStacks] = useState(false);
-  const [showMoreClasses, setShowMoreClasses] = useState(false);
   const [classes, setClasses] = useState([]);
   const [stacks, setStacks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [collapsedCardCount, setCollapsedCardCount] = useState(getCollapsedCardCount);
+  const [rowSize, setRowSize] = useState(getRowSize);
+  const [stacksVisibleCount, setStacksVisibleCount] = useState(getCollapsedCardCount);
+  const [classesVisibleCount, setClassesVisibleCount] = useState(getCollapsedCardCount);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
 
   useEffect(() => {
-    const updateCollapsedCardCount = () => {
+    const handleResize = () => {
       setCollapsedCardCount(getCollapsedCardCount());
+      setRowSize(getRowSize());
     };
-
-    window.addEventListener('resize', updateCollapsedCardCount);
-
-    return () => {
-      window.removeEventListener('resize', updateCollapsedCardCount);
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const shouldShowMoreStacks = stacks.length > collapsedCardCount;
-  const shouldShowMoreClasses = classes.length > collapsedCardCount;
-  const visibleStacks = shouldShowMoreStacks && !showMoreStacks ? stacks.slice(0, collapsedCardCount) : stacks;
-  const visibleClasses = shouldShowMoreClasses && !showMoreClasses ? classes.slice(0, collapsedCardCount) : classes;
+  useEffect(() => {
+    setStacksVisibleCount(collapsedCardCount);
+    setClassesVisibleCount(collapsedCardCount);
+  }, [collapsedCardCount]);
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -59,15 +55,11 @@ const Home = () => {
     let isMounted = true;
 
     const loadData = async () => {
-      if (isMounted) {
-        setIsLoading(true);
-      }
+      if (isMounted) setIsLoading(true);
 
       try {
         const response = await apiRequest('/account/user');
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
 
         const apiClasses = Array.isArray(response?.classes) ? response.classes : [];
         const apiStacks = Array.isArray(response?.stacks) ? response.stacks : [];
@@ -90,22 +82,14 @@ const Home = () => {
       } catch (error) {
         if (error?.status === 401 || error?.status === 400) {
           clearAuthToken();
-          if (isMounted) {
-            navigate('/', { replace: true });
-          }
+          if (isMounted) navigate('/', { replace: true });
           return;
         }
-
-        if (!isMounted) {
-          return;
-        }
-
+        if (!isMounted) return;
         setStacks([]);
         setClasses([]);
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -115,6 +99,18 @@ const Home = () => {
       isMounted = false;
     };
   }, [navigate]);
+
+  const visibleStacks = stacks.slice(0, stacksVisibleCount);
+  const visibleClasses = classes.slice(0, classesVisibleCount);
+  const hasMoreStacks = stacks.length > stacksVisibleCount;
+  const hasMoreClasses = classes.length > classesVisibleCount;
+  const canCollapseStacks = stacksVisibleCount > collapsedCardCount;
+  const canCollapseClasses = classesVisibleCount > collapsedCardCount;
+
+  const showMoreStacks = () => setStacksVisibleCount((prev) => prev + rowSize * 2);
+  const showMoreClasses = () => setClassesVisibleCount((prev) => prev + rowSize * 2);
+  const collapseStacks = () => setStacksVisibleCount(collapsedCardCount);
+  const collapseClasses = () => setClassesVisibleCount(collapsedCardCount);
 
   return (
     <div className="home-page">
@@ -140,30 +136,33 @@ const Home = () => {
                 <p>No stacks yet. Add your first!</p>
               </div>
             ) : (
-            <div className={`cards-grid ${showMoreStacks ? 'show-all' : ''}`}>
-              {visibleStacks.map((stack) => (
-                <div
-                  key={stack.id}
-                  className="stack-card"
-                  onClick={() => navigate(`/stack/${stack.id}`)}
-                >
-                  <div className="stack-layer-back"></div>
-                  <div className="stack-layer-middle"></div>
-                  <div className="stack-layer-front">
-                    <div className="stack-content">
-                      <span className="stack-name">{stack.name}</span>
-                      {stack.className && <span className="stack-class-label">{stack.className}</span>}
+              <div className={`cards-grid ${!hasMoreStacks ? 'show-all' : ''}`}>
+                {visibleStacks.map((stack) => (
+                  <div
+                    key={stack.id}
+                    className="stack-card"
+                    onClick={() => navigate(`/stack/${stack.id}`)}
+                  >
+                    <div className="stack-layer-back"></div>
+                    <div className="stack-layer-middle"></div>
+                    <div className="stack-layer-front">
+                      <div className="stack-content">
+                        <span className="stack-name">{stack.name}</span>
+                        {stack.className && <span className="stack-class-label">{stack.className}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {shouldShowMoreStacks && (
-                <button className="see-more-button" onClick={() => setShowMoreStacks(!showMoreStacks)}>
-                  <FontAwesomeIcon icon={showMoreStacks ? faArrowLeft : faArrowRight} className="arrow-icon" />
-                  <span>{showMoreStacks ? 'see less' : 'see more'}</span>
-                </button>
-              )}
-            </div>
+                ))}
+                {(hasMoreStacks || canCollapseStacks) && (
+                  <button
+                    className="see-more-button"
+                    onClick={hasMoreStacks ? showMoreStacks : collapseStacks}
+                  >
+                    <FontAwesomeIcon icon={hasMoreStacks ? faArrowRight : faArrowLeft} className="arrow-icon" />
+                    <span>{hasMoreStacks ? 'see more' : 'see less'}</span>
+                  </button>
+                )}
+              </div>
             )}
           </section>
 
@@ -179,29 +178,32 @@ const Home = () => {
                 <p>No classes yet. Add your first!</p>
               </div>
             ) : (
-            <div className={`cards-grid ${showMoreClasses ? 'show-all' : ''}`}>
-              {visibleClasses.map((classItem) => (
-                <div
-                  key={classItem.id}
-                  className="class-card"
-                  onClick={() => navigate(`/class/${classItem.id}`)}
-                >
-                  <div className="folder-wrapper">
-                    <FontAwesomeIcon icon={faFolder} className="folder-icon" />
-                    {classItem.stackCount > 0 && (
-                      <span className="stack-badge">{classItem.stackCount}</span>
-                    )}
+              <div className={`cards-grid ${!hasMoreClasses ? 'show-all' : ''}`}>
+                {visibleClasses.map((classItem) => (
+                  <div
+                    key={classItem.id}
+                    className="class-card"
+                    onClick={() => navigate(`/class/${classItem.id}`)}
+                  >
+                    <div className="folder-wrapper">
+                      <FontAwesomeIcon icon={faFolder} className="folder-icon" />
+                      {classItem.stackCount > 0 && (
+                        <span className="stack-badge">{classItem.stackCount}</span>
+                      )}
+                    </div>
+                    <span className="class-name">{classItem.name}</span>
                   </div>
-                  <span className="class-name">{classItem.name}</span>
-                </div>
-              ))}
-              {shouldShowMoreClasses && (
-                <button className="see-more-button" onClick={() => setShowMoreClasses(!showMoreClasses)}>
-                  <FontAwesomeIcon icon={showMoreClasses ? faArrowLeft : faArrowRight} className="arrow-icon" />
-                  <span>{showMoreClasses ? 'see less' : 'see more'}</span>
-                </button>
-              )}
-            </div>
+                ))}
+                {(hasMoreClasses || canCollapseClasses) && (
+                  <button
+                    className="see-more-button"
+                    onClick={hasMoreClasses ? showMoreClasses : collapseClasses}
+                  >
+                    <FontAwesomeIcon icon={hasMoreClasses ? faArrowRight : faArrowLeft} className="arrow-icon" />
+                    <span>{hasMoreClasses ? 'see more' : 'see less'}</span>
+                  </button>
+                )}
+              </div>
             )}
           </section>
         </div>

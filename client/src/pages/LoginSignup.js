@@ -11,7 +11,7 @@ const LoginSignup = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [registerForm, setRegisterForm] = useState({ username: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({ username: '', password: '', email: '' });
 
   useEffect(() => {
     if (authToken) {
@@ -66,22 +66,26 @@ const LoginSignup = () => {
       setAuthToken(token);
       upsertLocalUser(sessionUsername);
       navigate('/home');
-    } 
-    catch (error) {
+    } catch (error) {
       setMessage(error?.payload?.message || error?.message || 'Incorrect username or password.');
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const handleRegister = async () => {
-    const { username, password } = registerForm;
+    const { username, password, email } = registerForm;
     const trimUsername = username.trim();
     const trimPassword = password.trim();
+    const trimEmail = email.trim().toLowerCase();
 
-    if (!trimUsername || !trimPassword) {
-      setMessage('Please enter username and password.');
+    if (!trimUsername || !trimPassword || !trimEmail) {
+      setMessage('Please enter username, password, and email.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimEmail)) {
+      setMessage('Please enter a valid email address.');
       return;
     }
 
@@ -90,7 +94,7 @@ const LoginSignup = () => {
     try {
       const result = await apiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username: trimUsername, password: trimPassword }),
+        body: JSON.stringify({ username: trimUsername, password: trimPassword, email: trimEmail }),
       });
 
       const token = result?.token || '';
@@ -100,11 +104,9 @@ const LoginSignup = () => {
       setAuthToken(token);
       upsertLocalUser(sessionUsername);
       navigate('/home');
-    }
-    catch (error) { 
+    } catch (error) {
       setMessage(error?.payload?.message || error?.message || 'Registration failed.');
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -173,6 +175,16 @@ const LoginSignup = () => {
               type="text"
               value={registerForm.username}
               onChange={(event) => setRegisterForm((prev) => ({ ...prev, username: event.target.value }))}
+              disabled={loading}
+            ></input>
+          </div>
+          <div className="login-signup-form-comp">
+            <p className="login-signup-form-title">Email</p>
+            <input
+              className="login-signup-form-input"
+              type="email"
+              value={registerForm.email}
+              onChange={(event) => setRegisterForm((prev) => ({ ...prev, email: event.target.value }))}
               disabled={loading}
             ></input>
           </div>

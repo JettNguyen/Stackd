@@ -26,6 +26,8 @@ const NewStack = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [importFeedback, setImportFeedback] = useState('');
+  const [isCreatingClass, setIsCreatingClass] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -100,17 +102,34 @@ const NewStack = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedClassId(null);
+    setIsCreatingClass(false);
+    setNewClassName('');
   };
 
   const handleSaveStack = async () => {
     if (isSaving) return;
     setIsSaving(true);
     try {
+      let classId = selectedClassId || null;
+
+      if (isCreatingClass) {
+        if (!newClassName.trim()) {
+          setFeedback('Please enter a name for the new class.');
+          setIsSaving(false);
+          return;
+        }
+        const created = await apiRequest('/class/create', {
+          method: 'POST',
+          body: JSON.stringify({ name: newClassName.trim() }),
+        });
+        classId = created?.data?._id || null;
+      }
+
       await apiRequest('/stack/create', {
         method: 'POST',
         body: JSON.stringify({
           name: stackName.trim(),
-          classId: selectedClassId || null,
+          classId,
           cards: cards.map((card) => ({ term: card.term, definition: card.definition })),
         }),
       });
@@ -255,14 +274,32 @@ const NewStack = () => {
           {classes.map((cls) => (
             <button
               key={cls._id}
-              className={`new-stack-modal-class-button ${selectedClassId === cls._id ? 'selected' : ''}`}
+              className={`new-stack-modal-class-button ${!isCreatingClass && selectedClassId === cls._id ? 'selected' : ''}`}
               type="button"
-              onClick={() => setSelectedClassId(cls._id)}
+              onClick={() => { setSelectedClassId(cls._id); setIsCreatingClass(false); }}
             >
               {cls.name}
             </button>
           ))}
+          <button
+            className={`new-stack-modal-class-button-new-class ${isCreatingClass ? 'selected' : ''}`}
+            type="button"
+            onClick={() => { setIsCreatingClass(true); setSelectedClassId(null); }}
+          >
+            + New Class
+          </button>
         </div>
+
+        {isCreatingClass && (
+          <input
+            className="new-stack-modal-class-name-input"
+            type="text"
+            placeholder="Class name"
+            value={newClassName}
+            onChange={(e) => setNewClassName(e.target.value)}
+            autoFocus
+          />
+        )}
 
         <div className="new-stack-modal-actions">
           <button type="button" className="new-stack-modal-cancel-button" onClick={handleCloseModal}>
