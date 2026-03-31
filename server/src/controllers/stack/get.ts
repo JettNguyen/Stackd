@@ -4,9 +4,9 @@ import Class from '../../models/Class'
 import Card from '../../models/Card'
 import UserCardProgress from '../../models/UserCardProgress'
 
-const view: RequestHandler = async (req, res, next) => {
+const getStackById: RequestHandler = async (req, res, next) => {
   try {
-    const { stack: stackId } = req.query
+    const stackId = req.params.id
 
     if (!stackId) {
       return next({
@@ -134,4 +134,4 @@ const view: RequestHandler = async (req, res, next) => {
   }
 }
 
-export default view
+export default getStackById

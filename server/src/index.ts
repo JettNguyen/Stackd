@@ -26,7 +26,7 @@ const bootstrap = async () => {
 
   app.use('/classes', classRoutes)
 
-  app.use('/stack', stackRoutes)
+  app.use('/stacks', stackRoutes)
 
   app.listen(PORT, () => {
     console.log(`✅ Server is listening on port: ${PORT}`)

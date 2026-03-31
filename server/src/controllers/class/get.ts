@@ -60,11 +60,13 @@ const getClassById: RequestHandler = async (req, res, next) => {
     }
 
     if (role === 'owner') {
-      responseData.users = selectedClass.users.map(u => ({
-        accountId: u.account._id,
-        username: (u.account as any).username,
-        role: u.role
-      }))
+      responseData.users = selectedClass.users
+        .filter((u: any) => u.account !== null)
+        .map(u => ({
+          accountId: u.account._id,
+          username: (u.account as any).username,
+          role: u.role
+        }))
       responseData.visibility = selectedClass.visibility
     }
 
