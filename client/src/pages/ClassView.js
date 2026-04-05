@@ -373,11 +373,13 @@ const ClassView = () => {
   if (isLoading) {
     return (
       <div className="class-view-page">
-        {isLoadingVisible && (
+        {isLoadingVisible ? (
           <div className="class-view-loading" role="status" aria-live="polite">
             <div className="class-view-loading-spinner"></div>
             <p>Loading class...</p>
           </div>
+        ) : (
+          <div className="class-view-loading-delayed-placeholder" aria-hidden="true" />
         )}
       </div>
     );

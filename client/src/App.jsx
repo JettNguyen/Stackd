@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import { CSSTransition, SwitchTransition } from 'react-transition-group'
 import PageHeader from './components/PageHeader'
@@ -24,9 +24,20 @@ const ProtectedRoute = ({ children }) => {
   return children
 }
 
-const ScrollManager = () => {
+const ScrollManager = ({ onScrollTargetChange }) => {
   const location = useLocation()
   const navigationType = useNavigationType()
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      const previous = window.history.scrollRestoration
+      window.history.scrollRestoration = 'manual'
+
+      return () => {
+        window.history.scrollRestoration = previous
+      }
+    }
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -35,22 +46,17 @@ const ScrollManager = () => {
   }, [location.key])
 
   useEffect(() => {
+    let nextTop = 0
+
     if (navigationType === 'POP') {
       const saved = sessionStorage.getItem(`scroll:${location.key}`)
-      if (saved) {
-        const t = setTimeout(() => {
-          window.scrollTo({ top: parseInt(saved, 10), behavior: 'instant' })
-        }, 430)
-        return () => clearTimeout(t)
+      if (saved !== null) {
+        nextTop = parseInt(saved, 10) || 0
       }
     }
-    else {
-      const t = setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' })
-      }, 250)
-      return () => clearTimeout(t)
-    }
-  }, [location.key, navigationType])
+
+    onScrollTargetChange(nextTop)
+  }, [location.key, navigationType, onScrollTargetChange])
 
   return null
 }
@@ -61,12 +67,8 @@ const GlobalHeader = () => {
   const [displayPath, setDisplayPath] = useState(location.pathname)
 
   useEffect(() => {
-    if (navigationType === 'POP') {
-      const t = setTimeout(() => setDisplayPath(location.pathname), 260)
-      return () => clearTimeout(t)
-    } else {
-      setDisplayPath(location.pathname)
-    }
+    const t = setTimeout(() => setDisplayPath(location.pathname), 260)
+    return () => clearTimeout(t)
   }, [location.pathname, navigationType])
 
   if (displayPath === '/' || displayPath === '/login') {
@@ -83,7 +85,7 @@ const GlobalHeader = () => {
   )
 }
 
-const AnimatedRoutes = () => {
+const AnimatedRoutes = ({ onRouteEnter }) => {
   const location = useLocation()
   const nodeRef = useRef(null)
 
@@ -93,7 +95,8 @@ const AnimatedRoutes = () => {
         nodeRef={nodeRef}
         key={location.pathname}
         classNames='route'
-        timeout={420}
+        timeout={{ enter: 320, exit: 260 }}
+        onEnter={onRouteEnter}
         unmountOnExit
         appear
       >
@@ -153,6 +156,15 @@ const AnimatedRoutes = () => {
 
 const App = () => {
   const [isBootstrappingAuth, setIsBootstrappingAuth] = useState(true)
+  const pendingScrollTopRef = useRef(0)
+
+  const handleScrollTargetChange = useCallback((nextTop) => {
+    pendingScrollTopRef.current = nextTop
+  }, [])
+
+  const handleRouteEnter = useCallback(() => {
+    window.scrollTo({ top: pendingScrollTopRef.current, behavior: 'instant' })
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -191,10 +203,10 @@ const App = () => {
 
   return (
     <Router>
-      <ScrollManager />
+      <ScrollManager onScrollTargetChange={handleScrollTargetChange} />
       <div className='App'>
         <GlobalHeader />
-        <AnimatedRoutes />
+        <AnimatedRoutes onRouteEnter={handleRouteEnter} />
       </div>
     </Router>
   )

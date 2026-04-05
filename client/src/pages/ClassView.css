@@ -221,6 +221,12 @@
 	color: var(--text-secondary);
 }
 
+.class-view-loading-delayed-placeholder {
+	min-height: 220px;
+	display: grid;
+	place-items: center;
+}
+
 .class-view-loading p {
 	font-size: 16px;
 	font-weight: 600;

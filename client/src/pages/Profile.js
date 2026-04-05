@@ -123,11 +123,13 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="profile-page">
-        {isLoadingVisible && (
+        {isLoadingVisible ? (
           <div className="home-loading" role="status" aria-live="polite">
             <div className="home-loading-spinner"></div>
             <p>Loading profile...</p>
           </div>
+        ) : (
+          <div className="profile-loading-delayed-placeholder" aria-hidden="true" />
         )}
       </div>
     );

@@ -1,4 +1,23 @@
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const resolveApiBase = () => {
+  const configuredBase = process.env.REACT_APP_API_URL?.trim();
+
+  if (configuredBase) {
+    return configuredBase.replace(/\/+$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    const apiPort = process.env.REACT_APP_API_PORT || '8080';
+
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `${protocol}//${hostname}:${apiPort}`;
+    }
+  }
+
+  return 'http://localhost:8080';
+};
+
+const API_BASE = resolveApiBase();
 const TOKEN_KEY = 'stackd_auth_token';
 
 const buildUrl = (path) => `${API_BASE}${path}`;

@@ -120,7 +120,9 @@ const Home = () => {
             <div className="home-loading-spinner"></div>
             <p>Loading home...</p>
           </div>
-        ) : null
+        ) : (
+          <div className="home-loading-delayed-placeholder" aria-hidden="true" />
+        )
       ) : (
         <div className="content-appear">
           <Breadcrumbs items={[{ label: 'Home' }]} />

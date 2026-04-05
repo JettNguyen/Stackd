@@ -261,11 +261,13 @@ const StackView = () => {
   if (isLoading) {
     return (
       <div className="stack-view-page">
-        {isLoadingVisible && (
+        {isLoadingVisible ? (
           <div className="stack-view-loading" role="status" aria-live="polite">
             <div className="stack-view-loading-spinner"></div>
             <p>Loading stack...</p>
           </div>
+        ) : (
+          <div className="stack-view-loading-delayed-placeholder" aria-hidden="true" />
         )}
       </div>
     );

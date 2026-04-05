@@ -130,7 +130,7 @@ const LoginSignup = () => {
         </div>
       </div>
       {isLogin ? (
-        <form className="login-signup-form" onSubmit={handleLoginSubmit}>
+        <form key="login" className="login-signup-form" onSubmit={handleLoginSubmit}>
           <div className="login-signup-form-comp">
             <p className="login-signup-form-title">Username</p>
             <input
@@ -167,7 +167,7 @@ const LoginSignup = () => {
           </button>
         </form>
       ) : (
-        <form className="login-signup-form" onSubmit={handleRegisterSubmit}>
+        <form key="register" className="login-signup-form" onSubmit={handleRegisterSubmit}>
           <div className="login-signup-form-comp">
             <p className="login-signup-form-title">Username</p>
             <input
