@@ -73,7 +73,7 @@
 }
 
 .login-signup-feedback {
-    color: var(--color-primary);
+    color: var(--color-danger);
     font-size: 14px;
     margin-top: 10px;
 }

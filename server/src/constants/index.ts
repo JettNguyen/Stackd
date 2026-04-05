@@ -3,8 +3,6 @@ import path from 'path'
 
 dotenv.config({
   path: path.resolve(__dirname, '../../.env'),
-  override: true,
-  debug: true,
 })
 
 const ORIGIN = '*'
@@ -16,5 +14,6 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/<DB_NAME>'
 const MONGO_OPTIONS = {}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'unsafe_secret'
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
 
-export { ORIGIN, PORT, MONGO_URI, MONGO_OPTIONS, JWT_SECRET }
+export { ORIGIN, PORT, MONGO_URI, MONGO_OPTIONS, JWT_SECRET, GEMINI_API_KEY }

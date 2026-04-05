@@ -1,6 +1,3 @@
-import dotenv from 'dotenv'
-dotenv.config()
-
 import app from './utils/app' // (server)
 import mongo from './utils/mongo' // (database)
 import { PORT } from './constants/index'

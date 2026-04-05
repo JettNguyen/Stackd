@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiRequest, getAuthToken } from '../utils/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
+import useDelayedSpinner from '../utils/useDelayedSpinner';
 import './NewStack.css';
 
 const NewStack = () => {
@@ -20,14 +21,31 @@ const NewStack = () => {
   const [importText, setImportText] = useState('');
   const [cards, setCards] = useState(initialCards);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState(initialSelectedClassId);
   const [classes, setClasses] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [importFeedback, setImportFeedback] = useState('');
+  const [importFeedbackIsError, setImportFeedbackIsError] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState('');
+  const [aiFeedbackIsError, setAiFeedbackIsError] = useState(false);
   const [isCreatingClass, setIsCreatingClass] = useState(false);
   const [newClassName, setNewClassName] = useState('');
+  const [aiCardCount, setAiCardCount] = useState(10);
+  const [aiAutoCardCount, setAiAutoCardCount] = useState(false);
+  const [aiNotes, setAiNotes] = useState('');
+  const [aiFileError, setAiFileError] = useState('');
+  const [aiFile, setAiFile] = useState(null);
+  const [aiPastedText, setAiPastedText] = useState('');
+  const [isDesktopUpload, setIsDesktopUpload] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const isGeneratingVisible = useDelayedSpinner(isGenerating, 1000);
+  const aiSliderRef = useRef(null);
+
+  const aiFileInputId = 'ai-generate-file-input';
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -38,6 +56,30 @@ const NewStack = () => {
       .then((res) => setClasses(res.classes || []))
       .catch(() => navigate('/', { replace: true }));
   }, [navigate]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const update = () => setIsDesktopUpload(window.innerWidth >= 650);
+
+    update();
+
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  useEffect(() => {
+    if (!aiSliderRef.current) {
+      return;
+    }
+
+    const min = 5;
+    const max = 75;
+    const progress = ((aiCardCount - min) / (max - min)) * 100;
+    aiSliderRef.current.style.setProperty('--ai-slider-progress', `${progress}%`);
+  }, [aiCardCount, isAiOpen]);
 
   const parseImport = (text) => {
     return text
@@ -55,14 +97,111 @@ const NewStack = () => {
       .filter(Boolean);
   };
 
-  const handleImport = () => {
-    const parsed = parseImport(importText);
+  const applyParsedCards = (rawText) => {
+    const parsed = parseImport(rawText);
+
     if (parsed.length === 0) {
       setImportFeedback('No cards found. Check the format and try again.');
+      setImportFeedbackIsError(true);
+      setAiFeedback('No cards found. Check the format and try again.');
+      setAiFeedbackIsError(true);
       return;
     }
+
     setCards(parsed.map((card, index) => ({ id: index + 1, ...card })));
     setImportFeedback(`✓ Imported ${parsed.length} card${parsed.length === 1 ? '' : 's'}`);
+    setImportFeedbackIsError(false);
+    return parsed.length;
+  };
+
+  const handleImport = () => {
+    applyParsedCards(importText);
+  };
+
+  const MAX_FILE_SIZE = 15 * 1024 * 1024;
+
+  const setAiSelectedFile = (file) => {
+    if (file && file.size > MAX_FILE_SIZE) {
+      setAiFile(null);
+      setAiFileError(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum size is 15 MB.`);
+      const input = document.getElementById(aiFileInputId);
+      if (input) input.value = '';
+      return;
+    }
+    setAiFile(file || null);
+    setAiFileError('');
+    setAiFeedback('');
+    setAiFeedbackIsError(false);
+  };
+
+  const handleSelectAiFile = (event) => {
+    setAiSelectedFile(event.target.files?.[0]);
+  };
+
+  const handleGenerateCards = async () => {
+    if (!aiFile && !aiPastedText.trim()) {
+      setAiFeedback('Please upload a file or paste some text first.');
+      setAiFeedbackIsError(true);
+      return;
+    }
+
+    const requestedCardCount = Number(aiCardCount);
+
+    if (!aiAutoCardCount && (!Number.isInteger(requestedCardCount) || requestedCardCount <= 0)) {
+      setAiFeedback('Please choose a valid card count.');
+      setAiFeedbackIsError(true);
+      return;
+    }
+
+    if (isGenerating) {
+      return;
+    }
+
+    setIsGenerating(true);
+    setAiFeedback('');
+    setAiFeedbackIsError(false);
+
+    try {
+      const formData = new FormData();
+      if (aiFile) formData.append('file', aiFile);
+      if (aiPastedText.trim()) formData.append('pastedText', aiPastedText.trim());
+      formData.append('cardCount', aiAutoCardCount ? 'auto' : String(requestedCardCount));
+
+      if (aiNotes.trim()) {
+        formData.append('notes', aiNotes.trim());
+      }
+
+      const responseText = await apiRequest('/stack/generate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const normalizedImportText = String(responseText || '')
+        .trim()
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .join('\n');
+
+      const importedCount = applyParsedCards(normalizedImportText);
+
+      if (importedCount) {
+        setImportText(normalizedImportText);
+        setAiFeedback(`✓ Generated ${importedCount} card${importedCount === 1 ? '' : 's'}`);
+        setAiFeedbackIsError(false);
+      }
+    } catch (err) {
+      setAiFeedback(err?.message || 'Failed to generate cards. Please try again.');
+      setAiFeedbackIsError(true);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDropAiFile = (event) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    setAiSelectedFile(event.dataTransfer.files?.[0]);
   };
 
   const handleCardChange = (id, field, value) => {
@@ -208,7 +347,139 @@ const NewStack = () => {
                   Import
                 </button>
               </div>
-              {importFeedback && <p className="import-feedback">{importFeedback}</p>}
+              {importFeedback && <p className={`import-feedback ${importFeedbackIsError ? 'ai-file-error' : ''}`}>{importFeedback}</p>}
+            </div>
+          )}
+        </section>
+
+        <section className={`import-section ${isAiOpen ? 'open' : 'collapsed'}`}>
+          <button
+            type="button"
+            className="import-toggle"
+            onClick={() => setIsAiOpen((prev) => !prev)}
+          >
+            <span>Generate with AI</span>
+            <span className="import-chevron">
+              <FontAwesomeIcon icon={faChevronDown} />
+            </span>
+          </button>
+          {isAiOpen && (
+            <div className="import-body">
+              <p className="new-stack-modal-subtitle">Upload class materials and have AI generate cards for you!</p>
+
+              {isDesktopUpload ? (
+                <div
+                  className={`import-textarea ai-upload-dropzone ${isDragOver ? 'ai-upload-dropzone-dragover' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setIsDragOver(true);
+                  }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={handleDropAiFile}
+                  onClick={() => document.getElementById(aiFileInputId)?.click()}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      document.getElementById(aiFileInputId)?.click();
+                    }
+                  }}
+                >
+                  <span>{aiFile ? aiFile.name : 'Drop PDF, image, or text file here'}</span>
+                </div>
+              ) : (
+                <div className="ai-file-select-row">
+                  <input
+                    id={aiFileInputId}
+                    type="file"
+                    accept="application/pdf,image/*,text/plain,.txt,.md,.csv"
+                    onChange={handleSelectAiFile}
+                    className="ai-upload-hidden-input"
+                  />
+                  <button
+                    type="button"
+                    className="import-button"
+                    onClick={() => document.getElementById(aiFileInputId)?.click()}
+                  >
+                    Choose File
+                  </button>
+                  {aiFile && <span className="ai-file-name">{aiFile.name}</span>}
+                </div>
+              )}
+
+              {isDesktopUpload && (
+                <div className="import-actions">
+                  <input
+                    id={aiFileInputId}
+                    type="file"
+                    accept="application/pdf,image/*,text/plain,.txt,.md,.csv"
+                    onChange={handleSelectAiFile}
+                    className="ai-upload-hidden-input"
+                  />
+                  <button
+                    type="button"
+                    className="import-button"
+                    onClick={() => document.getElementById(aiFileInputId)?.click()}
+                  >
+                    Browse Files
+                  </button>
+                </div>
+              )}
+
+              {aiFileError && <p className="import-feedback ai-file-error">{aiFileError}</p>}
+
+              <p className="ai-or-separator">- or paste text below -</p>
+              <textarea
+                className="import-textarea ai-paste-input"
+                value={aiPastedText}
+                onChange={(event) => setAiPastedText(event.target.value)}
+                placeholder="Paste your notes or study material here"
+              />
+
+              <div className="ai-card-count-wrap">
+                <div className="ai-card-count-heading-row">
+                  <p className="new-stack-modal-subtitle ai-card-count-label">
+                    Cards to generate: {aiAutoCardCount ? 'Auto' : aiCardCount}
+                  </p>
+                  <label className="ai-card-count-auto-toggle">
+                    <input
+                      type="checkbox" className="ai-card-count-auto-checkbox"
+                      checked={aiAutoCardCount}
+                      onChange={(event) => setAiAutoCardCount(event.target.checked)}
+                    />
+                    Auto
+                  </label>
+                </div>
+                {!aiAutoCardCount && (
+                  <input
+                    ref={aiSliderRef}
+                    className="ai-card-count-slider"
+                    type="range"
+                    min="5"
+                    max="75"
+                    step="5"
+                    value={aiCardCount}
+                    onChange={(event) => setAiCardCount(Number(event.target.value))}
+                  />
+                )}
+              </div>
+
+              <textarea
+                className="import-textarea ai-notes-input"
+                value={aiNotes}
+                onChange={(event) => setAiNotes(event.target.value)}
+                placeholder="Additional notes for AI (optional)"
+              />
+
+              <div className="import-actions">
+                <button type="button" className="import-button" onClick={handleGenerateCards} disabled={isGenerating}>
+                  Generate
+                </button>
+              </div>
+
+              {isGeneratingVisible && <p className="import-feedback">Generating cards...</p>}
+              {aiFeedback && <p className={`import-feedback ${aiFeedbackIsError ? 'ai-file-error' : ''}`}>{aiFeedback}</p>}
             </div>
           )}
         </section>

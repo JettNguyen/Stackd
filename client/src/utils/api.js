@@ -64,10 +64,14 @@ export const clearAuthToken = () => {
 
 export const apiRequest = async (path, options = {}) => {
   const token = getAuthToken();
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  if (!isFormDataBody && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -78,10 +82,16 @@ export const apiRequest = async (path, options = {}) => {
     headers,
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json')
+    ? await response.json().catch(() => ({}))
+    : await response.text().catch(() => '');
 
   if (!response.ok) {
-    const error = new Error(payload?.message || 'Request failed');
+    const errorMessage = typeof payload === 'string'
+      ? payload
+      : payload?.message;
+    const error = new Error(errorMessage || 'Request failed');
     error.status = response.status;
     error.payload = payload;
     throw error;

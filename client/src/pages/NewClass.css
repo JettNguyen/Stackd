@@ -161,7 +161,7 @@
 	margin-top: -10px;
 	margin-bottom: 20px;
 	font-size: 14px;
-	color: #ffb4a8;
+	color: var(--color-danger);
 	font-weight: 600;
 }
 

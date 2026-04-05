@@ -1,12 +1,13 @@
 ﻿:root {
   --color-primary: #ee5500;
   --color-primary-dark: #cc4400;
+  --color-primary-darker: rgba(204, 68, 0, 0.5);
   --color-secondary: #005add;
   --color-secondary-dark: #0041aa;
   --color-star: #ffdd00;
   --color-success: #00cc00;
-  --color-danger: #df3636;
-  --color-danger-dark: #b22c2c;
+  --color-danger: #e05252;
+  --color-danger-dark: #b83c3c;
   --stack-middle: #883000;
   --stack-back: #442200;
 
