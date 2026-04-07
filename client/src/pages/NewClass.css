@@ -1,6 +1,5 @@
 .new-class-page {
 	min-height: 100dvh;
-	background-color: var(--bg-primary);
 	padding: 25px 20px 250px;
 	color: var(--text-primary);
 }
@@ -76,7 +75,7 @@
 .stacks-chevron {
 	font-size: 18px;
 	color: var(--text-secondary);
-	transition: transform 0.25s ease-in-out;
+	transition: transform 0.2s ease-in-out;
 	transform: rotate(0deg);
 }
 
@@ -125,7 +124,7 @@
 }
 
 .stack-option:active {
-	transform: translateY(2px);
+	transform: translateY(1px);
 }
 
 .new-class-actions-bar {
@@ -149,12 +148,13 @@
 	font-weight: 700;
 	cursor: pointer;
 	filter: drop-shadow(0 0 10px rgb(0, 0, 0));
-	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+	transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .confirm-class-button:active {
-	transform: translateY(2px);
+	transform: translateY(1px);
 	background-color: var(--color-primary-dark);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .new-class-feedback {
@@ -172,7 +172,9 @@
 	}
 
 	.confirm-class-button:hover {
-		transform: translateY(-2px);
+		transform: translateY(-1px);
+		background-color: var(--color-primary-dark);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 }
 

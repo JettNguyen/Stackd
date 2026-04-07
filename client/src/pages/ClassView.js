@@ -13,8 +13,8 @@ import {
   faEye,
   faTrash,
   faUserMinus,
-  faArrowRight,
-  faArrowLeft,
+  faChevronUp,
+  faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Modal from '../components/Modal';
@@ -50,6 +50,9 @@ const ClassView = () => {
   const [editClassName, setEditClassName] = useState('');
   const [inviteUsername, setInviteUsername] = useState('');
   const [inviteRole, setInviteRole] = useState('viewer');
+  const [isEditClassInfoExpanded, setIsEditClassInfoExpanded] = useState(false);
+  const [isAddUserExpanded, setIsAddUserExpanded] = useState(false);
+  const [inviteUsernameSearch, setInviteUsernameSearch] = useState('');
 
   const isMountedRef = useRef(true);
 
@@ -214,6 +217,7 @@ const ClassView = () => {
   const isOwner = role === 'owner';
   const canEdit = role === 'owner' || role === 'editor';
   const isMember = Boolean(role);
+  const isLeaveUnavailable = isOwner && isMember;
 
   const runClassAction = async (request) => {
     if (isActionLoading) {
@@ -552,8 +556,6 @@ const ClassView = () => {
               <FontAwesomeIcon icon={faCog} />
             </button>
           </div>
-
-          {actionMessage && <p className="class-action-message">{actionMessage}</p>}
         </div>
 
         <section className="class-view-section">
@@ -601,7 +603,7 @@ const ClassView = () => {
                       onClick={() => setShowAllStacks((prev) => !prev)}
                       aria-label="See more stacks"
                     >
-                      <FontAwesomeIcon icon={showAllStacks ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                      <FontAwesomeIcon icon={showAllStacks ? faChevronUp : faChevronDown} className="arrow-icon" />
                       <span>{showAllStacks ? 'see less' : 'see more'}</span>
                     </button>
                   );
@@ -614,7 +616,7 @@ const ClassView = () => {
                       onClick={() => setShowAllStacks(false)}
                       aria-label="See less stacks"
                     >
-                      <FontAwesomeIcon icon={faArrowLeft} className="arrow-icon" />
+                      <FontAwesomeIcon icon={faChevronUp} className="arrow-icon" />
                       <span>see less</span>
                     </button>
                   );
@@ -661,91 +663,137 @@ const ClassView = () => {
 
 
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Class Settings">
+        {actionMessage && (
+          <div className="modal-error-banner">
+            <p>{actionMessage}</p>
+          </div>
+        )}
+
         <div className="modal-section">
           <h3 className="modal-section-title">Membership</h3>
           <button
             type="button"
-            className="modal-option-button"
+            className={`modal-option-button${isLeaveUnavailable ? ' modal-option-button-unavailable' : ''}`}
             onClick={handleJoinOrLeave}
-            disabled={isActionLoading || (isOwner && isMember)}
+            disabled={isActionLoading || isLeaveUnavailable}
           >
             <div className="modal-option-icon">
               <FontAwesomeIcon icon={faSignOutAlt} />
             </div>
             <span className="modal-option-text">
-              {isOwner && isMember ? 'Owner cannot leave class' : isMember ? 'Leave Class' : 'Join Class'}
+              {isLeaveUnavailable ? 'Owner cannot leave class' : isMember ? 'Leave Class' : 'Join Class'}
             </span>
           </button>
         </div>
 
         {canEdit && (
           <div className="modal-section">
-            <h3 className="modal-section-title">Editing</h3>
             <button
               type="button"
-              className="modal-option-button"
-              onClick={handleUpdateClassInfo}
-              disabled={isActionLoading}
+              className="modal-collapsible-header"
+              onClick={() => setIsEditClassInfoExpanded(!isEditClassInfoExpanded)}
             >
-              <div className="modal-option-icon">
+              <div className="modal-collapsible-icon">
                 <FontAwesomeIcon icon={faEdit} />
               </div>
-              <span className="modal-option-text">Edit Class Info</span>
+              <span className="modal-collapsible-title">Edit Class Info</span>
+              <FontAwesomeIcon 
+                icon={isEditClassInfoExpanded ? faChevronUp : faChevronDown}
+                className="modal-collapsible-arrow"
+              />
             </button>
-            <input
-              className="class-settings-input"
-              type="text"
-              value={editClassName}
-              onChange={(event) => setEditClassName(event.target.value)}
-              placeholder="Class name"
-            />
+            
+            {isEditClassInfoExpanded && (
+              <div className="modal-collapsible-content">
+                <input
+                  className="class-settings-input"
+                  type="text"
+                  value={editClassName}
+                  onChange={(event) => setEditClassName(event.target.value)}
+                  placeholder="Class name"
+                />
+                <button
+                  type="button"
+                  className="modal-action-button"
+                  onClick={handleUpdateClassInfo}
+                  disabled={isActionLoading}
+                >
+                  {isActionLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {isOwner && (
           <div className="modal-section">
-            <h3 className="modal-section-title">Administration</h3>
             <button
               type="button"
-              className="modal-option-button"
-              onClick={handleAddMember}
-              disabled={isActionLoading}
+              className="modal-collapsible-header"
+              onClick={() => setIsAddUserExpanded(!isAddUserExpanded)}
             >
-              <div className="modal-option-icon">
+              <div className="modal-collapsible-icon">
                 <FontAwesomeIcon icon={faUsers} />
               </div>
-              <span className="modal-option-text">Add/Update User</span>
-            </button>
-            <div className="class-settings-row">
-              <input
-                className="class-settings-input"
-                type="text"
-                value={inviteUsername}
-                onChange={(event) => setInviteUsername(event.target.value)}
-                placeholder="username"
+              <span className="modal-collapsible-title">Add/Update User</span>
+              <FontAwesomeIcon 
+                icon={isAddUserExpanded ? faChevronUp : faChevronDown}
+                className="modal-collapsible-arrow"
               />
-              <select
-                className="class-settings-select"
-                value={inviteRole}
-                onChange={(event) => setInviteRole(event.target.value)}
-              >
-                <option value="viewer">viewer</option>
-                <option value="editor">editor</option>
-              </select>
-            </div>
-            <button
-              type="button"
-              className="modal-option-button"
-              onClick={handleToggleVisibility}
-              disabled={isActionLoading}
-            >
-              <div className="modal-option-icon">
-                <FontAwesomeIcon icon={faEye} />
-              </div>
-              <span className="modal-option-text">Make {visibility === 'public' ? 'Private' : 'Public'}</span>
             </button>
+
+            {isAddUserExpanded && (
+              <div className="modal-collapsible-content">
+                <input
+                  className="class-settings-input"
+                  type="text"
+                  value={inviteUsernameSearch}
+                  onChange={(event) => setInviteUsernameSearch(event.target.value)}
+                  placeholder="Search or enter username"
+                />
+                <div className="class-settings-row">
+                  <select
+                    className="class-settings-select"
+                    value={inviteRole}
+                    onChange={(event) => setInviteRole(event.target.value)}
+                  >
+                    <option value="viewer">viewer</option>
+                    <option value="editor">editor</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="modal-action-button"
+                    onClick={() => {
+                      setInviteUsername(inviteUsernameSearch);
+                      handleAddMember();
+                      setInviteUsernameSearch('');
+                    }}
+                    disabled={isActionLoading || !inviteUsernameSearch.trim()}
+                  >
+                    {isActionLoading ? 'Adding...' : 'Add User'}
+                  </button>
+                </div>
+                {isOwner && (
+                  <div className="modal-section">
+                    <button
+                      type="button"
+                      className="modal-option-button"
+                      onClick={handleToggleVisibility}
+                      disabled={isActionLoading}
+                    >
+                      <div className="modal-option-icon">
+                        <FontAwesomeIcon icon={faEye} />
+                      </div>
+                      <span className="modal-option-text">Make {visibility === 'public' ? 'Private' : 'Public'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
+
+        
 
         {isOwner && (
           <div className="modal-section modal-danger-section">

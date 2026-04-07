@@ -1,6 +1,5 @@
 .login-signup-page {
     min-height: 100dvh;
-    background-color: var(--bg-primary);
     padding: 100px 20px;
     color: var(--text-primary);
     margin-bottom: 150px;
@@ -70,6 +69,18 @@
     width: 240px;
     height: 50px;
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.5));
+    transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.login-signup-form-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background-color: var(--bg-card);
+    box-shadow: inset 0 0 0 1px var(--color-primary), 5px 5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.login-signup-form-input:active {
+    border-color: var(--color-primary);
 }
 
 .login-signup-feedback {
@@ -86,7 +97,7 @@
     letter-spacing: 0.5px;
 }
 
-.login-button { 
+.login-button {
     cursor: pointer;
     background-color: var(--color-primary);
     color: var(--text-primary);
@@ -98,14 +109,15 @@
     height: 50px;
     margin-top: 20px;
     filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
-    transition: transform 0.25s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .login-button:active {
-    transform: translateY(2px);
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.switch-button { 
+.switch-button {
     cursor: pointer;
     background-color: var(--color-secondary);
     color: var(--text-primary);
@@ -116,20 +128,25 @@
     height: 50px;
     margin-top: 15px;
     filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
-    transition: transform 0.25s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .switch-button:active {
-    transform: translateY(2px);
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @media (hover: hover) and (pointer: fine) {
     .login-button:hover {
-        transform: translateY(2px);
+        background-color: var(--color-primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .switch-button:hover {
-        transform: translateY(2px);
+        background-color: var(--color-secondary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 }
 

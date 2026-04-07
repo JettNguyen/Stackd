@@ -24,6 +24,13 @@ import useDelayedSpinner from '../utils/useDelayedSpinner';
 import './StackView.css';
 
 const StackView = () => {
+  const STUDY_META_FADE_DURATION = 220;
+  const STUDY_LIST_EXIT_DELAY = 180;
+  const STUDY_LIST_EXIT_DURATION = 280;
+  const STUDY_EXIT_DURATION = 360;
+  const STUDY_ENTER_DURATION = 420;
+  const BROWSE_ENTER_DURATION = 420;
+
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -42,6 +49,9 @@ const StackView = () => {
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState(null);
+  const [isStudyContentEntering, setIsStudyContentEntering] = useState(false);
+  const [isBrowseContentEntering, setIsBrowseContentEntering] = useState(false);
 
   const stackBreadcrumbItems = useMemo(() => {
     const items = [{ label: 'Home', to: '/home' }];
@@ -55,6 +65,13 @@ const StackView = () => {
   }, [stack]);
 
   const copyTimeoutRef = useRef(null);
+  const transitionTimeoutsRef = useRef([]);
+  const slideDirectionRef = useRef(null);
+
+  const clearTransitionTimeouts = () => {
+    transitionTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+    transitionTimeoutsRef.current = [];
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -131,14 +148,67 @@ const StackView = () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
+
+      clearTransitionTimeouts();
     };
   }, []);
 
+  const isTransitioningToStudy = transitionDirection === 'to-study';
+  const isTransitioningToBrowse = transitionDirection === 'to-browse';
+  const isAnimatingTransition = Boolean(transitionDirection || isStudyContentEntering || isBrowseContentEntering);
 
   const handleStudy = () => {
-    setIsStudyMode(true);
+    if (isStudyMode || isAnimatingTransition) {
+      return;
+    }
+
+    clearTransitionTimeouts();
+    slideDirectionRef.current = null;
+    setIsSettingsOpen(false);
     setCurrentCardIndex(0);
     setShowDefinition(false);
+    setIsBrowseContentEntering(false);
+    setTransitionDirection('to-study');
+
+    const switchToStudyDelay = STUDY_META_FADE_DURATION + STUDY_LIST_EXIT_DELAY + STUDY_LIST_EXIT_DURATION;
+    const switchTimeoutId = setTimeout(() => {
+      setIsStudyMode(true);
+      setTransitionDirection(null);
+      setIsStudyContentEntering(true);
+
+      const enterTimeoutId = setTimeout(() => {
+        setIsStudyContentEntering(false);
+      }, STUDY_ENTER_DURATION);
+
+      transitionTimeoutsRef.current.push(enterTimeoutId);
+    }, switchToStudyDelay);
+
+    transitionTimeoutsRef.current.push(switchTimeoutId);
+  };
+
+  const handleExitStudy = () => {
+    if (!isStudyMode || isAnimatingTransition) {
+      return;
+    }
+
+    clearTransitionTimeouts();
+    slideDirectionRef.current = null;
+    setIsStudyContentEntering(false);
+    setTransitionDirection('to-browse');
+
+    const switchToBrowseId = setTimeout(() => {
+      setIsStudyMode(false);
+      setTransitionDirection(null);
+      setIsBrowseContentEntering(true);
+
+      const browseEnterTimeoutId = setTimeout(() => {
+        setIsBrowseContentEntering(false);
+      }, BROWSE_ENTER_DURATION);
+
+      transitionTimeoutsRef.current.push(browseEnterTimeoutId);
+    }, STUDY_EXIT_DURATION);
+
+    transitionTimeoutsRef.current.push(switchToBrowseId);
   };
 
   const handleEdit = () => {
@@ -189,6 +259,8 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = 'prev';
+    setIsFlipping(false);
     setCurrentCardIndex((prev) => prev - 1);
     setShowDefinition(false);
   };
@@ -198,6 +270,8 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = 'next';
+    setIsFlipping(false);
     setCurrentCardIndex((prev) => prev + 1);
     setShowDefinition(false);
   };
@@ -290,8 +364,9 @@ const StackView = () => {
     <div className="stack-view-page">
       <div className="stack-view-content content-appear">
         <Breadcrumbs items={stackBreadcrumbItems} />
+        <div className="stack-view-stage">
         {!isStudyMode ? (
-          <div className="stack-browse-mode">
+          <div className={`stack-browse-mode ${isTransitioningToStudy ? 'transitioning-to-study' : ''} ${isBrowseContentEntering ? 'entering-from-study' : ''}`}>
             <div className="stack-actions">
               <button
                 type="button"
@@ -344,7 +419,12 @@ const StackView = () => {
             </div>
 
             <div className="stack-action-buttons">
-              <button type="button" className="view-button" onClick={handleStudy}>
+              <button
+                type="button"
+                className={`view-button ${isTransitioningToStudy ? 'view-button-transitioning' : ''} ${isBrowseContentEntering ? 'view-button-entering' : ''}`}
+                onClick={handleStudy}
+                disabled={isAnimatingTransition}
+              >
                 <FontAwesomeIcon icon={faGlasses} />
                 <span>Study</span>
               </button>
@@ -354,6 +434,7 @@ const StackView = () => {
                 className="stack-settings-button"
                 onClick={() => setIsSettingsOpen(true)}
                 aria-label="Stack settings"
+                disabled={isAnimatingTransition}
               >
                 <FontAwesomeIcon icon={faCog} />
               </button>
@@ -407,7 +488,7 @@ const StackView = () => {
             </div>
           </div>
         ) : (
-          <div className="study-mode">
+          <div className={`study-mode ${isStudyContentEntering ? 'study-mode-entering' : ''} ${isTransitioningToBrowse ? 'study-mode-exiting' : ''}`}>
             <div className="stack-card-large study-card-display">
               <div className="stack-layer-back"></div>
               <div className="stack-layer-middle"></div>
@@ -416,16 +497,20 @@ const StackView = () => {
               </div>
             </div>
 
-            <button type="button" className="view-button study-active" onClick={() => setIsStudyMode(false)}>
+            <button
+              type="button"
+              className={`view-button study-active ${isStudyContentEntering ? 'study-view-button-entering' : ''} ${isTransitioningToBrowse ? 'study-view-button-exiting' : ''}`}
+              onClick={handleExitStudy}
+            >
               <FontAwesomeIcon icon={faGlasses} />
               <span>view</span>
             </button>
 
-            <div className="card-counter">
+            <div className={`card-counter ${isStudyContentEntering ? 'study-detail-entering' : ''} ${isTransitioningToBrowse ? 'study-detail-exiting' : ''}`}>
               <span>{currentCardIndex + 1}/{stackCards.length}</span>
             </div>
 
-            <div className="study-flashcard-container">
+            <div className={`study-flashcard-container ${isStudyContentEntering ? 'study-detail-entering' : ''} ${isTransitioningToBrowse ? 'study-detail-exiting' : ''}`}>
               <button
                 type="button"
                 className="nav-arrow left-arrow"
@@ -435,7 +520,11 @@ const StackView = () => {
                 <FontAwesomeIcon icon={faChevronLeft} />
               </button>
 
-              <div className={`study-flashcard ${isFlipping ? 'flipping' : ''}`} onClick={handleCardClick}>
+              <div
+                key={currentCardIndex}
+                className={`study-flashcard ${isFlipping ? 'flipping' : ''}${slideDirectionRef.current ? ` slide-in-${slideDirectionRef.current}` : ''}`}
+                onClick={handleCardClick}
+              >
                 {currentCard && cardStatuses[currentCard.id] && (
                   <div className={`card-status-badge ${cardStatuses[currentCard.id]}`}>
                     <FontAwesomeIcon icon={cardStatuses[currentCard.id] === 'star' ? faStar : faCheck} />
@@ -457,7 +546,7 @@ const StackView = () => {
             </div>
 
             {createPortal(
-              <div className="study-actions-bar">
+              <div className={`study-actions-bar ${isStudyContentEntering ? 'study-actions-bar-transitioning' : ''} ${isTransitioningToBrowse ? 'study-actions-bar-exiting' : ''}`}>
                 <button
                   type="button"
                   className={`study-action-btn star-btn ${currentCard && cardStatuses[currentCard.id] === 'star' ? 'active' : ''}`}
@@ -477,6 +566,7 @@ const StackView = () => {
             )}
           </div>
         )}
+        </div>
       </div>
 
       <Modal

@@ -1,6 +1,5 @@
 ﻿.class-view-page {
 	min-height: 100dvh;
-	background-color: var(--bg-primary);
 	padding: 25px 20px;
 	color: var(--text-primary);
 }
@@ -54,14 +53,6 @@
 	margin: -15px;
 }
 
-.class-action-message {
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--text-secondary);
-	text-align: center;
-	min-height: 20px;
-}
-
 .class-settings-row {
 	display: grid;
 	grid-template-columns: 1fr auto;
@@ -97,6 +88,102 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.modal-error-banner {
+	background-color: var(--bg-overlay-mid);
+	border-left: 4px solid var(--text-secondary);
+	padding: 12px 14px;
+	border-radius: 8px;
+	margin-bottom: 16px;
+}
+
+.modal-error-banner p {
+	margin: 0;
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+.modal-collapsible-header {
+	width: 100%;
+	min-height: 50px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 15px;
+	background: var(--bg-card);
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	color: var(--text-primary);
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	margin-top: 10px;
+}
+
+.modal-collapsible-header:hover:not(:disabled) {
+	background: var(--bg-overlay-mid);
+	border-color: var(--text-primary);
+}
+
+.modal-collapsible-header:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.modal-collapsible-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 25px;
+	height: 25px;
+	margin-right: 10px;
+	flex-shrink: 0;
+}
+
+.modal-collapsible-title {
+	flex: 1;
+	text-align: left;
+}
+
+.modal-collapsible-arrow {
+	margin-left: 10px;
+	transition: transform 0.2s ease;
+	flex-shrink: 0;
+}
+
+.modal-collapsible-content {
+	padding: 20px 30px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	border-bottom: 1px solid var(--text-secondary);
+}
+
+.modal-collapsible-content .class-settings-input {
+	margin: 0;
+}
+
+.modal-action-button {
+	padding: 10px 16px;
+	background: var(--primary-color, #007bff);
+	color: white;
+	border: none;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.modal-action-button:hover:not(:disabled) {
+	opacity: 0.9;
+}
+
+.modal-action-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .class-view-page .stack-action-buttons {
@@ -137,12 +224,13 @@
 	justify-content: center;
 	cursor: pointer;
 	z-index: 3;
-	transition: transform 0.12s ease, background-color 0.12s ease;
+	transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.stack-remove-button:hover {
-	transform: scale(1.06);
-	background: var(--bg-overlay-strong);
+.stack-remove-button:active {
+	transform: scale(0.92);
+	background: var(--color-danger);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .class-view-add-tile {
@@ -161,7 +249,14 @@
 	text-transform: lowercase;
 	margin-bottom: -20px;
 	padding-bottom: 10px;
-	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out, border-color 0.25s ease-in-out;
+	transition: transform 0.15s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.class-view-add-tile:active {
+	transform: translateY(1px);
+	border-color: var(--color-secondary);
+	background-color: var(--bg-overlay-mid);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .class-view-add-plus {
@@ -305,7 +400,7 @@
 	font-size: 15px;
 	font-weight: 700;
 	cursor: pointer;
-	transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .add-stack-secondary {
@@ -314,9 +409,20 @@
 	border: 1px solid var(--bg-tertiary);
 }
 
+.add-stack-secondary:active {
+	background-color: var(--bg-tertiary);
+	transform: translateY(1px);
+}
+
 .add-stack-primary {
 	background-color: var(--color-primary);
 	color: var(--text-primary);
+}
+
+.add-stack-primary:active {
+	background-color: var(--color-primary-dark);
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .add-stack-feedback {
@@ -335,17 +441,24 @@
 	.add-stack-primary:hover {
 		background-color: var(--color-primary-dark);
 	}
-}
 
-@media (hover: hover) and (pointer: fine) {
 	.class-view-add-tile:hover {
-		transform: translateY(-5px);
+		transform: translateY(-2px);
 		background: var(--bg-overlay-mid);
 		border-color: var(--text-primary);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 	}
 
 	.class-side-button-add:hover {
 		background-color: var(--bg-tertiary);
+		transform: translateY(-1px);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.stack-remove-button:hover {
+		transform: scale(1.12);
+		background: var(--color-danger);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 	}
 }
 

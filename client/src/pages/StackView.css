@@ -1,6 +1,5 @@
 .stack-view-page {
     min-height: 100dvh;
-    background-color: var(--bg-primary);
     padding: 25px 20px 0 20px;
     color: var(--text-primary);
     padding-top: 25px;
@@ -14,6 +13,50 @@
 .stack-view-content {
     max-width: 600px;
     margin: 0 auto;
+    position: relative;
+}
+
+.stack-view-stage {
+    position: relative;
+}
+
+.stack-browse-mode {
+    transition: opacity 0.2s ease;
+}
+
+.stack-browse-mode.transitioning-to-study {
+    pointer-events: none;
+}
+
+.stack-side-button,
+.profile-button-placeholder,
+.stack-info,
+.stack-settings-button {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.stack-browse-mode.transitioning-to-study .stack-side-button,
+.stack-browse-mode.transitioning-to-study .profile-button-placeholder,
+.stack-browse-mode.transitioning-to-study .stack-info,
+.stack-browse-mode.transitioning-to-study .stack-settings-button {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.stack-browse-mode.entering-from-study .stack-side-button,
+.stack-browse-mode.entering-from-study .profile-button-placeholder,
+.stack-browse-mode.entering-from-study .stack-info,
+.stack-browse-mode.entering-from-study .stack-settings-button {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: stack-meta-in 0.3s ease forwards;
+}
+
+@keyframes stack-meta-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .stack-view-loading {
@@ -72,7 +115,7 @@
     justify-content: center;
     font-size: 20px;
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
-    transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out, color 0.25s ease-in-out;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .stack-side-button-link {
@@ -193,7 +236,26 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: background-color 0.25s ease-in-out, transform 0.25s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out, opacity 0.15s ease-in-out;
+}
+
+.stack-action-buttons .view-button {
+    transition: background-color 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.stack-action-buttons .view-button.view-button-transitioning {
+    opacity: 0;
+}
+
+.stack-action-buttons .view-button.view-button-entering {
+    opacity: 0;
+    animation: stack-view-button-in 0.3s ease 0.1s forwards;
+}
+
+@keyframes stack-view-button-in {
+    to {
+        opacity: 1;
+    }
 }
 
 .stack-action-buttons {
@@ -212,13 +274,14 @@
     margin: 0 0 15px;
 }
 
-
 .stack-action-buttons .view-button {
     margin: 0;
 }
 
 .view-button:active {
     background-color: var(--bg-tertiary);
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .view-button.study-active {
@@ -228,6 +291,7 @@
 
 .view-button.study-active:active {
     background-color: var(--color-primary-dark);
+    transform: translateY(1px);
 }
 
 .flashcards-list {
@@ -236,6 +300,26 @@
     border-radius: 25px;
     padding: 15px;
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 1));
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.stack-browse-mode.transitioning-to-study .flashcards-list {
+    opacity: 0;
+    transform: translateY(24px);
+    transition-delay: 0.3s;
+}
+
+.stack-browse-mode.entering-from-study .flashcards-list {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: stack-flashcards-in 0.3s ease 0.3s forwards;
+}
+
+@keyframes stack-flashcards-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .flashcards-header {
@@ -306,11 +390,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
 
 .status-btn-inline:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .status-btn-inline.star.active {
@@ -358,7 +443,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 70dvh;
+    min-height: 60dvh;
     gap: 10px;
     padding-bottom: calc(140px + env(safe-area-inset-bottom));
     box-sizing: border-box;
@@ -382,6 +467,56 @@
     gap: 10px;
     width: 100%;
     max-width: 600px;
+    overflow: visible;
+    perspective: 900px;
+}
+
+.study-detail-entering {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: study-flashcard-container-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s forwards;
+}
+
+.study-detail-exiting {
+    opacity: 1;
+    transform: translateY(0);
+    animation: study-flashcard-container-out 0.3s ease forwards;
+}
+
+.study-view-button-entering {
+    opacity: 0;
+    animation: study-view-button-in 0.3s ease forwards;
+}
+
+.study-view-button-exiting {
+    opacity: 1;
+    animation: study-view-button-out 0.3s ease forwards;
+}
+
+@keyframes study-flashcard-container-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes study-flashcard-container-out {
+    to {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+}
+
+@keyframes study-view-button-in {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes study-view-button-out {
+    to {
+        opacity: 0;
+    }
 }
 
 .nav-arrow {
@@ -391,12 +526,12 @@
     font-size: 32px;
     cursor: pointer;
     padding: 10px;
-    transition: transform 0.25s ease-in-out;
+    transition: transform 0.2s ease-in-out;
     flex-shrink: 0;
 }
 
 .nav-arrow:active:not(:disabled) {
-    transform: scale(1.05);
+    transform: scale(0.98);
 }
 
 .nav-arrow:disabled {
@@ -414,14 +549,44 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.25s ease-in-out, filter 0.25s ease-in-out;
+    transition: transform 0.15s ease-in-out, filter 0.15s ease-in-out;
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
     position: relative;
     transform-style: preserve-3d;
 }
 
 .study-flashcard:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
+}
+
+.study-flashcard.slide-in-next {
+    animation: card-slide-in-next 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.study-flashcard.slide-in-prev {
+    animation: card-slide-in-prev 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes card-slide-in-next {
+    from {
+        opacity: 0.6;
+        transform: translateX(55%) scale(0.8) rotate(5deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1) rotate(0deg);
+    }
+}
+
+@keyframes card-slide-in-prev {
+    from {
+        opacity: 0.6;
+        transform: translateX(-55%) scale(0.8) rotate(-5deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1) rotate(0deg);
+    }
 }
 
 .study-flashcard.flipping {
@@ -475,19 +640,46 @@
 .study-actions-bar {
     display: flex;
     gap: 20px;
-    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    padding: 20px max(20px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
     background-color: var(--bg-overlay-strong);
     border-radius: 20px 20px 0 0;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     position: fixed;
-    left: 0;
-    right: 0;
+    left: max(env(safe-area-inset-left), 0px);
+    right: max(env(safe-area-inset-right), 0px);
     bottom: 0;
     justify-content: center;
     z-index: 1000;
-    width: 100dvw;
-    max-width: 100dvw;
-    margin-left: calc(-1 * (100dvw - 100%) / 2);
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    transform: translate3d(0, 0, 0);
+}
+
+.study-actions-bar.study-actions-bar-transitioning {
+    opacity: 0;
+    transform: translate3d(0, calc(100% + env(safe-area-inset-bottom)), 0);
+    animation: study-actions-bar-in 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s forwards;
+}
+
+.study-actions-bar.study-actions-bar-exiting {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    animation: study-actions-bar-out 0.3s cubic-bezier(0.55, 0, 0.78, 0.2) forwards;
+}
+
+@keyframes study-actions-bar-in {
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes study-actions-bar-out {
+    to {
+        opacity: 0;
+        transform: translate3d(0, calc(100% + env(safe-area-inset-bottom)), 0);
+    }
 }
 
 .study-action-btn {
@@ -502,11 +694,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
 
 .study-action-btn:active {
-    transform: translateY(2px);
+    transform: translateY(1px);
+    border-color: var(--text-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .study-action-btn.star-btn.active {
@@ -530,55 +724,63 @@
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 20px;
-    transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .stack-settings-button:active {
-    transform: scale(0.95);
+    transform: scale(0.93);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 @media (hover: hover) and (pointer: fine) {
     .stack-side-button:hover {
         background-color: var(--bg-tertiary);
+        transform: translateY(-1px);
         filter: brightness(0.95);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.12);
     }
 
     .view-button:hover {
         background-color: var(--bg-tertiary);
+        transform: translateY(-1px);
         filter: brightness(0.95);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.12);
     }
 
     .view-button.study-active:hover {
         background-color: var(--color-primary-dark);
+        transform: translateY(-1px);
     }
 
     .status-btn-inline:hover {
-        transform: scale(1.1);
+        transform: scale(1.15);
+        background-color: rgba(0, 0, 0, 0.05);
     }
 
     .nav-arrow:hover:not(:disabled) {
-        transform: scale(1.2);
+        transform: scale(1.15);
+        color: var(--color-primary);
     }
 
     .study-flashcard:hover {
-        transform: translateY(-5px) rotateY(10deg);
-        filter: drop-shadow(15px 5px 0 rgba(0, 0, 0, 0.75));
+        transform: translateY(-3px) rotateY(8deg);
+        filter: drop-shadow(12px 4px 0 rgba(0, 0, 0, 0.5));
     }
 
     .study-action-btn:hover {
-        transform: translateY(-5px);
+        transform: translateY(-2px);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
     }
 
     .stack-settings-button:hover {
         background-color: var(--bg-tertiary);
-        transform: scale(1.05);
+        transform: scale(1.08);
         filter: brightness(0.95);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.12);
     }
 }
 
@@ -591,8 +793,8 @@
 .stack-settings-button:active {
   background: var(--bg-overlay-mid);
   filter: brightness(0.95);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transform: scale(0.94);
 }
 
 @media (min-width: 650px) {
@@ -622,8 +824,6 @@
     .stack-side-button {
         width: 55px;
         height: 55px;
-        border-radius: 10px;
-        font-size: 22px;
     }
 
     .stack-card-large {
@@ -878,6 +1078,6 @@
 
     .study-actions-bar {
         gap: 30px;
-        padding: 25px;
+        padding: 25px max(25px, env(safe-area-inset-right)) calc(25px + env(safe-area-inset-bottom)) max(25px, env(safe-area-inset-left));
     }
 }

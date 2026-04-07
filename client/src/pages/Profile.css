@@ -2,7 +2,6 @@
 	min-height: 100dvh;
 	padding: 25px 20px 80px;
 	color: var(--text-primary);
-	background-color: var(--bg-primary);
 	display: grid;
 	align-content: start;
 	gap: 15px;
@@ -158,11 +157,22 @@
 	padding: 10px 15px;
 	background: var(--bg-card);
 	font-weight: 700;
-	transition: background-color 0.2s ease-in-out;
+	transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.profile-actions button:active {
+	background: var(--bg-overlay-mid);
+	filter: brightness(0.95);
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .profile-actions .profile-logout-button {
 	background: var(--color-danger);
+}
+
+.profile-actions .profile-logout-button:active {
+	background: var(--color-danger-dark);
 }
 
 @keyframes slideInDown {
@@ -230,11 +240,13 @@
 	.profile-actions button:hover {
 		background: var(--bg-overlay-soft);
 		filter: brightness(0.95);
-		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.12);
 	}
 
 	.profile-actions .profile-logout-button:hover {
 		background: var(--color-danger-dark);
+		transform: translateY(-1px);
 	}
 
 	.profile-cards-grid .stack-card:hover .stack-layer-front {
@@ -253,7 +265,7 @@
 		border-color: var(--color-secondary);
 		background-color: var(--bg-overlay-mid);
 		filter: brightness(0.95);
-		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.12);
 	}
 }
 
@@ -261,8 +273,8 @@
 .see-more-button:active {
 	background: var(--bg-overlay-mid);
 	filter: brightness(0.95);
-	box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-	transform: scale(0.95);
+	box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+	transform: scale(0.96);
 }
 
 @media (min-width: 650px) {

@@ -24,7 +24,7 @@
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   filter: blur(0);
-  transition: opacity 320ms cubic-bezier(0.22,1,0.36,1), transform 320ms cubic-bezier(0.22,1,0.36,1), filter 320ms cubic-bezier(0.22,1,0.36,1);
+  transition: opacity 300ms cubic-bezier(0.22,1,0.36,1), transform 300ms cubic-bezier(0.22,1,0.36,1), filter 300ms cubic-bezier(0.22,1,0.36,1);
 }
 
 .route-exit {
@@ -37,7 +37,7 @@
   opacity: 0;
   transform: translate3d(0, -18px, 0) scale(0.987);
   filter: blur(3px);
-  transition: opacity 260ms cubic-bezier(0.6,0.04,0.98,0.335), transform 260ms cubic-bezier(0.6,0.04,0.98,0.335), filter 260ms cubic-bezier(0.6,0.04,0.98,0.335);
+  transition: opacity 250ms cubic-bezier(0.6,0.04,0.98,0.335), transform 250ms cubic-bezier(0.6,0.04,0.98,0.335), filter 250ms cubic-bezier(0.6,0.04,0.98,0.335);
 }
 
 @media (prefers-reduced-motion: reduce) {
