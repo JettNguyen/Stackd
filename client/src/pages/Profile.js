@@ -219,7 +219,8 @@ const Profile = () => {
 
   const { account, classes = [], stacks = [] } = profileData;
   const canEditOwnProfile = profileUsername ? Boolean(profileData?.isOwnProfile) : true;
-  const profileUrl = `${window.location.origin}/profile/${account.username}`;
+  const publicBaseUrl = window.location.href.split('#')[0];
+  const profileUrl = `${publicBaseUrl}#/profile/${account.username}`;
   const shouldShowMoreClasses = classes.length > collapsedCardCount;
   const shouldShowMoreStacks = stacks.length > collapsedCardCount;
   const visibleClasses = shouldShowMoreClasses && !showMoreClasses ? classes.slice(0, collapsedCardCount) : classes;
