@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -24,12 +24,26 @@ import useDelayedSpinner from '../utils/useDelayedSpinner';
 import './StackView.css';
 
 const StackView = () => {
+  const MOBILE_LANDSCAPE_QUERY = '(orientation: landscape) and (hover: none) and (pointer: coarse) and (max-width: 1024px)';
+  const isLikelyMobileDevice = () => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    const ua = navigator.userAgent || '';
+    const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const isIPadDesktopUA = /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
+    const isMobileFromUAData = Boolean(navigator.userAgentData?.mobile);
+
+    return isMobileUA || isIPadDesktopUA || isMobileFromUAData;
+  };
   const STUDY_META_FADE_DURATION = 220;
   const STUDY_LIST_EXIT_DELAY = 180;
   const STUDY_LIST_EXIT_DURATION = 280;
   const STUDY_EXIT_DURATION = 360;
   const STUDY_ENTER_DURATION = 420;
   const BROWSE_ENTER_DURATION = 420;
+  const isMobileDevice = isLikelyMobileDevice();
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -52,6 +66,7 @@ const StackView = () => {
   const [transitionDirection, setTransitionDirection] = useState(null);
   const [isStudyContentEntering, setIsStudyContentEntering] = useState(false);
   const [isBrowseContentEntering, setIsBrowseContentEntering] = useState(false);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   const stackBreadcrumbItems = useMemo(() => {
     const items = [{ label: 'Home', to: '/home' }];
@@ -68,10 +83,10 @@ const StackView = () => {
   const transitionTimeoutsRef = useRef([]);
   const slideDirectionRef = useRef(null);
 
-  const clearTransitionTimeouts = () => {
+  const clearTransitionTimeouts = useCallback(() => {
     transitionTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
     transitionTimeoutsRef.current = [];
-  };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -151,13 +166,50 @@ const StackView = () => {
 
       clearTransitionTimeouts();
     };
-  }, []);
+  }, [clearTransitionTimeouts]);
+
+  useEffect(() => {
+    document.body.classList.toggle('study-mode-nav-hidden', isStudyMode);
+
+    return () => {
+      document.body.classList.remove('study-mode-nav-hidden');
+    };
+  }, [isStudyMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(MOBILE_LANDSCAPE_QUERY);
+    const updateLandscapeState = (matches) => {
+      setIsMobileLandscape(matches && isMobileDevice);
+    };
+
+    const handleChange = (event) => {
+      updateLandscapeState(event.matches);
+    };
+
+    const handleResize = () => {
+      updateLandscapeState(mediaQuery.matches);
+    };
+
+    updateLandscapeState(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [MOBILE_LANDSCAPE_QUERY, isMobileDevice]);
 
   const isTransitioningToStudy = transitionDirection === 'to-study';
   const isTransitioningToBrowse = transitionDirection === 'to-browse';
   const isAnimatingTransition = Boolean(transitionDirection || isStudyContentEntering || isBrowseContentEntering);
+  const isLandscapeStudyLayout = isStudyMode && isMobileLandscape;
 
-  const handleStudy = () => {
+  const handleStudy = useCallback(() => {
     if (isStudyMode || isAnimatingTransition) {
       return;
     }
@@ -184,9 +236,17 @@ const StackView = () => {
     }, switchToStudyDelay);
 
     transitionTimeoutsRef.current.push(switchTimeoutId);
-  };
+  }, [
+    isStudyMode,
+    isAnimatingTransition,
+    clearTransitionTimeouts,
+    STUDY_META_FADE_DURATION,
+    STUDY_LIST_EXIT_DELAY,
+    STUDY_LIST_EXIT_DURATION,
+    STUDY_ENTER_DURATION,
+  ]);
 
-  const handleExitStudy = () => {
+  const handleExitStudy = useCallback(() => {
     if (!isStudyMode || isAnimatingTransition) {
       return;
     }
@@ -209,7 +269,36 @@ const StackView = () => {
     }, STUDY_EXIT_DURATION);
 
     transitionTimeoutsRef.current.push(switchToBrowseId);
-  };
+  }, [
+    isStudyMode,
+    isAnimatingTransition,
+    clearTransitionTimeouts,
+    STUDY_EXIT_DURATION,
+    BROWSE_ENTER_DURATION,
+  ]);
+
+  useEffect(() => {
+    if (!isMobileDevice) {
+      return;
+    }
+
+    if (isMobileLandscape && !isStudyMode && !isAnimatingTransition) {
+      handleStudy();
+      return;
+    }
+
+    if (!isMobileLandscape && isStudyMode && !isAnimatingTransition) {
+      handleExitStudy();
+    }
+  }, [isMobileDevice, isMobileLandscape, isStudyMode, isAnimatingTransition, handleStudy, handleExitStudy]);
+
+  useEffect(() => {
+    document.body.classList.toggle('mobile-landscape-study-active', isLandscapeStudyLayout);
+
+    return () => {
+      document.body.classList.remove('mobile-landscape-study-active');
+    };
+  }, [isLandscapeStudyLayout]);
 
   const handleEdit = () => {
     if (!stack) {
@@ -281,6 +370,7 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = null;
     setIsFlipping(true);
     setTimeout(() => setShowDefinition((prev) => !prev), 125);
     setTimeout(() => setIsFlipping(false), 250);
@@ -362,7 +452,7 @@ const StackView = () => {
 
   return (
     <div className="stack-view-page">
-      <div className="stack-view-content content-appear">
+      <div className={`stack-view-content content-appear${isLandscapeStudyLayout ? ' landscape-study-layout' : ''}`}>
         <Breadcrumbs items={stackBreadcrumbItems} />
         <div className="stack-view-stage">
         {!isStudyMode ? (
@@ -488,7 +578,7 @@ const StackView = () => {
             </div>
           </div>
         ) : (
-          <div className={`study-mode ${isStudyContentEntering ? 'study-mode-entering' : ''} ${isTransitioningToBrowse ? 'study-mode-exiting' : ''}`}>
+          <div className={`study-mode ${isStudyContentEntering ? 'study-mode-entering' : ''} ${isTransitioningToBrowse ? 'study-mode-exiting' : ''}${isLandscapeStudyLayout ? ' mobile-landscape-study' : ''}`}>
             <div className="stack-card-large study-card-display">
               <div className="stack-layer-back"></div>
               <div className="stack-layer-middle"></div>
@@ -691,7 +781,17 @@ const StackView = () => {
             <div className="modal-members-list">
               {users.map((member) => (
                 <div key={`${member.accountId}-${member.username}`} className="modal-member-chip">
-                  <span className="modal-member-name">{member.username}</span>
+                  <button
+                    type="button"
+                    className="modal-member-name"
+                    onClick={() => {
+                      setIsSettingsOpen(false)
+                      navigate(`/profile/${member.username}`)
+                    }}
+                    aria-label={`View ${member.username}'s profile`}
+                  >
+                    {member.username}
+                  </button>
                   <span className="modal-member-role">{member.role}</span>
                 </div>
               ))}

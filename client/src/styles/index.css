@@ -55,3 +55,11 @@
   }
 }
 
+body.mobile-landscape-study-active .page-header {
+  display: none;
+}
+
+body.mobile-landscape-study-active .route-animation-shell {
+  min-height: 100dvh;
+}
+

@@ -68,6 +68,7 @@
     border-radius: 15px;
     width: 240px;
     height: 50px;
+    font-size: 14px;
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.5));
     transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
@@ -89,6 +90,10 @@
     margin-top: 10px;
 }
 
+.login-signup-feedback-success {
+    color: var(--color-primary);
+}
+
 .login-signup-loading {
     color: var(--text-secondary);
     font-size: 14px;
@@ -102,7 +107,7 @@
     background-color: var(--color-primary);
     color: var(--text-primary);
     font-weight: bold;
-    font-size: 19px;
+    font-size: 18px;
     border-style: none;
     border-radius: 10px;
     width : 190px;
@@ -134,6 +139,24 @@
 .switch-button:active {
     transform: translateY(1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-forgot-link {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.login-forgot-link:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
 }
 
 @media (hover: hover) and (pointer: fine) {

@@ -4,7 +4,15 @@ import Class from '../../models/Class'
 
 const view: RequestHandler = async (req, res, next) => {
   try {
-    const { class: classId } = req.query
+    const classQuery = req.query.class
+    const classId = Array.isArray(classQuery) ? classQuery[0] : classQuery
+
+    if (!classId || typeof classId !== 'string') {
+      return next({
+        statusCode: 400,
+        message: 'Missing class id'
+      })
+    }
 
     const selectedClass = await Class.findById(classId)
 

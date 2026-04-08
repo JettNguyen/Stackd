@@ -449,6 +449,10 @@
     box-sizing: border-box;
 }
 
+.stack-view-content.landscape-study-layout .breadcrumbs {
+    display: none;
+}
+
 .study-card-display {
     margin-bottom: 0;
 }
@@ -713,6 +717,52 @@
     background-color: var(--color-success);
     border-color: var(--color-success);
     color: var(--text-primary);
+}
+
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) and (max-width: 1024px) {
+    .study-mode.mobile-landscape-study {
+        min-height: 100dvh;
+        justify-content: flex-start;
+        gap: 10px;
+        padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    }
+
+    .study-mode.mobile-landscape-study .study-card-display {
+        display: none;
+    }
+
+    .study-mode.mobile-landscape-study .view-button.study-active {
+        width: min(300px, 80dvw);
+        margin: 0;
+        padding: 10px;
+        font-size: 18px;
+    }
+
+    .study-mode.mobile-landscape-study .card-counter {
+        font-size: 20px;
+        margin: 0;
+    }
+
+    .study-mode.mobile-landscape-study .study-flashcard-container {
+        width: 100%;
+        max-width: 100%;
+        gap: 5px;
+    }
+
+    .study-mode.mobile-landscape-study .study-flashcard {
+        min-height: 45dvh;
+        padding: 20px;
+    }
+
+    .study-mode.mobile-landscape-study .study-card-text {
+        font-size: 20px;
+    }
+
+    .study-mode.mobile-landscape-study .nav-arrow {
+        font-size: 26px;
+        padding: 5px;
+    }
+
 }
 
 .stack-settings-button {
@@ -1079,5 +1129,37 @@
     .study-actions-bar {
         gap: 30px;
         padding: 25px max(25px, env(safe-area-inset-right)) calc(25px + env(safe-area-inset-bottom)) max(25px, env(safe-area-inset-left));
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .study-actions-bar {
+        gap: 10px;
+        padding: 10px max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        border-radius: 12px 12px 0 0;
+    }
+
+    .study-action-btn {
+        width: min(45vw, 180px);
+        height: 60px;
+        font-size: 26px;
+        border-radius: 10px;
+    }
+}
+
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) and (max-width: 1024px) {
+    .study-actions-bar {
+        gap: 20px;
+        padding: 10px max(10px, env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        padding-bottom: 15px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .study-action-btn {
+        flex: 1;
+        width: auto;
+        max-width: none;
+        height: 55px;
+        font-size: 22px;
     }
 }

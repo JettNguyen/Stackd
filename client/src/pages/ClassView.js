@@ -817,8 +817,17 @@ const ClassView = () => {
             <div className="modal-members-list">
               {users.map((member) => (
                 <div key={`${member.accountId}-${member.username}`} className="modal-member-chip">
-                  <span className="modal-member-name">{member.username}</span>
-                  <span className="modal-member-role">{member.role}</span>
+                  <button
+                    type="button"
+                    className="modal-member-name"
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      navigate(`/profile/${member.username}`);
+                    }}
+                    aria-label={`View ${member.username}'s profile`}
+                  >
+                    {member.username}
+                  </button>
                   {member.role !== 'owner' && (
                     <button
                       type="button"
@@ -829,6 +838,7 @@ const ClassView = () => {
                       <FontAwesomeIcon icon={faUserMinus} />
                     </button>
                   )}
+                  <span className="modal-member-role">{member.role}</span>
                 </div>
               ))}
             </div>

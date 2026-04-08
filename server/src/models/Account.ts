@@ -5,7 +5,8 @@ const accountSchema = new Schema<Account>(
   {
     email: { type: String, lowercase: true, trim: true },
     username: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    publicProfile: { type: Boolean, default: false },
   },
   { timestamps: true }
 )
