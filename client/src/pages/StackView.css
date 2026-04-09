@@ -641,6 +641,10 @@
     line-height: 1.5;
 }
 
+.study-card-text.showing-definition {
+    text-align: left;
+}
+
 .study-actions-bar {
     display: flex;
     gap: 20px;
@@ -658,6 +662,7 @@
     max-width: none;
     margin-left: 0;
     transform: translate3d(0, 0, 0);
+    backdrop-filter: blur(1px);
 }
 
 .study-actions-bar.study-actions-bar-transitioning {
@@ -1144,6 +1149,18 @@
         height: 60px;
         font-size: 26px;
         border-radius: 10px;
+    }
+}
+
+@media (max-width: 550px) {
+    .study-flashcard {
+        padding: 30px 20px;
+        min-height: 150px;
+    }
+
+    .study-card-text {
+        font-size: 16px;
+        line-height: 1.2;
     }
 }
 

@@ -67,6 +67,7 @@ const StackView = () => {
   const [isStudyContentEntering, setIsStudyContentEntering] = useState(false);
   const [isBrowseContentEntering, setIsBrowseContentEntering] = useState(false);
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
+  const [manualModeOverride, setManualModeOverride] = useState(null);
 
   const stackBreadcrumbItems = useMemo(() => {
     const items = [{ label: 'Home', to: '/home' }];
@@ -82,6 +83,7 @@ const StackView = () => {
   const copyTimeoutRef = useRef(null);
   const transitionTimeoutsRef = useRef([]);
   const slideDirectionRef = useRef(null);
+  const lastMobileLandscapeRef = useRef(null);
 
   const clearTransitionTimeouts = useCallback(() => {
     transitionTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -108,6 +110,7 @@ const StackView = () => {
         setStack({
           id: apiStack?._id,
           name: apiStack?.name || 'Stack',
+          classId: apiStack?.class || null,
           className: response?.className || '',
         });
 
@@ -214,6 +217,7 @@ const StackView = () => {
       return;
     }
 
+    setManualModeOverride('study');
     clearTransitionTimeouts();
     slideDirectionRef.current = null;
     setIsSettingsOpen(false);
@@ -251,6 +255,7 @@ const StackView = () => {
       return;
     }
 
+    setManualModeOverride('browse');
     clearTransitionTimeouts();
     slideDirectionRef.current = null;
     setIsStudyContentEntering(false);
@@ -278,19 +283,37 @@ const StackView = () => {
   ]);
 
   useEffect(() => {
+    if (lastMobileLandscapeRef.current === null) {
+      lastMobileLandscapeRef.current = isMobileLandscape;
+      return;
+    }
+
+    if (lastMobileLandscapeRef.current !== isMobileLandscape) {
+      setManualModeOverride(null);
+      lastMobileLandscapeRef.current = isMobileLandscape;
+    }
+  }, [isMobileLandscape]);
+
+  useEffect(() => {
     if (!isMobileDevice) {
+      return;
+    }
+
+    if (manualModeOverride !== null) {
       return;
     }
 
     if (isMobileLandscape && !isStudyMode && !isAnimatingTransition) {
       handleStudy();
-      return;
     }
-
-    if (!isMobileLandscape && isStudyMode && !isAnimatingTransition) {
-      handleExitStudy();
-    }
-  }, [isMobileDevice, isMobileLandscape, isStudyMode, isAnimatingTransition, handleStudy, handleExitStudy]);
+  }, [
+    isMobileDevice,
+    isMobileLandscape,
+    isStudyMode,
+    isAnimatingTransition,
+    manualModeOverride,
+    handleStudy,
+  ]);
 
   useEffect(() => {
     document.body.classList.toggle('mobile-landscape-study-active', isLandscapeStudyLayout);
@@ -307,7 +330,9 @@ const StackView = () => {
 
     navigate('/stack/new', {
       state: {
+        stackId: stack.id,
         stackName: stack.name,
+        selectedClassId: stack.classId || null,
         cards: stackCards,
       },
     });
@@ -620,7 +645,7 @@ const StackView = () => {
                     <FontAwesomeIcon icon={cardStatuses[currentCard.id] === 'star' ? faStar : faCheck} />
                   </div>
                 )}
-                <span className="study-card-text">
+                <span className={`study-card-text ${showDefinition ? 'showing-definition' : ''}`}>
                   {showDefinition ? currentCard?.definition || '' : currentCard?.term || ''}
                 </span>
               </div>

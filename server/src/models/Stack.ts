@@ -28,6 +28,10 @@ const stackSchema = new Schema<Stack>(
           type: String,
           enum: ['viewer', 'editor', 'owner'],
           required: true
+        },
+        lastOpenedAt: {
+          type: Date,
+          required: false
         }
       }
     ]

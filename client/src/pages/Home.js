@@ -14,36 +14,22 @@ const getCollapsedCardCount = () => {
   return 3;
 };
 
-const getRowSize = () => {
-  if (typeof window === 'undefined') return 2;
-  if (window.innerWidth >= 1250) return 4;
-  if (window.innerWidth >= 650) return 3;
-  return 2;
-};
-
 const Home = () => {
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [stacks, setStacks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [collapsedCardCount, setCollapsedCardCount] = useState(getCollapsedCardCount);
-  const [rowSize, setRowSize] = useState(getRowSize);
-  const [stacksVisibleCount, setStacksVisibleCount] = useState(getCollapsedCardCount);
-  const [classesVisibleCount, setClassesVisibleCount] = useState(getCollapsedCardCount);
+  const [areStacksExpanded, setAreStacksExpanded] = useState(false);
+  const [areClassesExpanded, setAreClassesExpanded] = useState(false);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
 
   useEffect(() => {
     const handleResize = () => {
       setCollapsedCardCount(getCollapsedCardCount());
-      setRowSize(getRowSize());
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    setStacksVisibleCount(collapsedCardCount);
-    setClassesVisibleCount(collapsedCardCount);
   }, [collapsedCardCount]);
 
   useEffect(() => {
@@ -100,17 +86,10 @@ const Home = () => {
     };
   }, [navigate]);
 
-  const visibleStacks = stacks.slice(0, stacksVisibleCount);
-  const visibleClasses = classes.slice(0, classesVisibleCount);
-  const hasMoreStacks = stacks.length > stacksVisibleCount;
-  const hasMoreClasses = classes.length > classesVisibleCount;
-  const canCollapseStacks = stacksVisibleCount > collapsedCardCount;
-  const canCollapseClasses = classesVisibleCount > collapsedCardCount;
-
-  const showMoreStacks = () => setStacksVisibleCount((prev) => prev + rowSize * 2);
-  const showMoreClasses = () => setClassesVisibleCount((prev) => prev + rowSize * 2);
-  const collapseStacks = () => setStacksVisibleCount(collapsedCardCount);
-  const collapseClasses = () => setClassesVisibleCount(collapsedCardCount);
+  const visibleStacks = areStacksExpanded ? stacks : stacks.slice(0, collapsedCardCount);
+  const visibleClasses = areClassesExpanded ? classes : classes.slice(0, collapsedCardCount);
+  const hasMoreStacks = stacks.length > collapsedCardCount;
+  const hasMoreClasses = classes.length > collapsedCardCount;
 
   return (
     <div className="home-page">
@@ -155,13 +134,13 @@ const Home = () => {
                     </div>
                   </div>
                 ))}
-                {(hasMoreStacks || canCollapseStacks) && (
+                {hasMoreStacks && (
                   <button
                     className="see-more-button"
-                    onClick={hasMoreStacks ? showMoreStacks : collapseStacks}
+                    onClick={() => setAreStacksExpanded((prev) => !prev)}
                   >
-                    <FontAwesomeIcon icon={hasMoreStacks ? faArrowRight : faArrowLeft} className="arrow-icon" />
-                    <span>{hasMoreStacks ? 'see more' : 'see less'}</span>
+                    <FontAwesomeIcon icon={areStacksExpanded ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                    <span>{areStacksExpanded ? 'see less' : 'see more'}</span>
                   </button>
                 )}
               </div>
@@ -196,13 +175,13 @@ const Home = () => {
                     <span className="class-name">{classItem.name}</span>
                   </div>
                 ))}
-                {(hasMoreClasses || canCollapseClasses) && (
+                {hasMoreClasses && (
                   <button
                     className="see-more-button"
-                    onClick={hasMoreClasses ? showMoreClasses : collapseClasses}
+                    onClick={() => setAreClassesExpanded((prev) => !prev)}
                   >
-                    <FontAwesomeIcon icon={hasMoreClasses ? faArrowRight : faArrowLeft} className="arrow-icon" />
-                    <span>{hasMoreClasses ? 'see more' : 'see less'}</span>
+                    <FontAwesomeIcon icon={areClassesExpanded ? faArrowLeft : faArrowRight} className="arrow-icon" />
+                    <span>{areClassesExpanded ? 'see less' : 'see more'}</span>
                   </button>
                 )}
               </div>

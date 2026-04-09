@@ -72,6 +72,13 @@ const view: RequestHandler = async (req, res, next) => {
       })
     }
 
+    if (uid && role) {
+      await Stack.updateOne(
+        { _id: selectedStack._id, 'users.account': uid },
+        { $set: { 'users.$.lastOpenedAt': new Date() } }
+      )
+    }
+
     // Build progress map
     let userProgressMap: Record<string, 'learning' | 'review' | 'mastered'> = {}
 

@@ -45,6 +45,13 @@ const view: RequestHandler = async (req, res, next) => {
       })
     }
 
+    if (uid && role) {
+      await Class.updateOne(
+        { _id: classId, 'users.account': uid },
+        { $set: { 'users.$.lastOpenedAt': new Date() } }
+      )
+    }
+
     const stacks = await Stack.find({ class: classId })
       .select('_id name createdAt updatedAt')
       .lean()

@@ -162,7 +162,7 @@
 }
 
 .stack-name {
-    font-size: clamp(14px, 4vw, 22px);
+    font-size: clamp(14px, 3.8vw, 22px);
     line-height: 1.1;
     max-width: 100%;
     overflow: hidden;
@@ -173,7 +173,7 @@
 }
 
 .stack-class-label {
-    font-size: clamp(11px, 3vw, 16px);
+    font-size: clamp(11px, 2.3vw, 16px);
     font-weight: 300;
     opacity: 0.75;
     line-height: 1.2;
@@ -353,11 +353,11 @@
     }
 
     .stack-name {
-        font-size: clamp(16px, 2.6vw, 28px);
+        font-size: clamp(14px, 2.3vw, 28px);
     }
 
     .stack-class-label {
-        font-size: clamp(10px, 1.8vw, 18px);
+        font-size: clamp(10px, 1.6vw, 18px);
     }
 
     .folder-icon {

@@ -5,6 +5,11 @@ import Account from '../../models/Account'
 import Stack from '../../models/Stack'
 import Class from '../../models/Class'
 
+const getRecencyValue = (value?: Date | string | null) => {
+  if (!value) return 0
+  return new Date(value).getTime() || 0
+}
+
 const user: RequestHandler = async (req, res, next) => {
   try {
     const { uid } = req.auth || {}
@@ -26,6 +31,19 @@ const user: RequestHandler = async (req, res, next) => {
         }
       },
       {
+        $addFields: {
+          currentUser: {
+            $first: {
+              $filter: {
+                input: '$users',
+                as: 'user',
+                cond: { $eq: ['$$user.account', account._id] }
+              }
+            }
+          }
+        }
+      },
+      {
         $lookup: {
           from: 'stacks',
           localField: '_id',
@@ -44,6 +62,7 @@ const user: RequestHandler = async (req, res, next) => {
           name: 1,
           createdAt: 1,
           updatedAt: 1,
+          lastOpenedAt: '$currentUser.lastOpenedAt',
           stackCount: 1 // include stack count
         }
       }
@@ -51,21 +70,48 @@ const user: RequestHandler = async (req, res, next) => {
 
     const userStacks = await Stack.find({ 'users.account': account._id })
       .populate('class', 'name')
-      .select('_id name class updatedAt createdAt')
+      .select('_id name class users updatedAt createdAt')
       .lean()
 
-    const stacks = userStacks.map((stack: any) => ({
-      _id: stack._id,
-      name: stack.name,
-      className: stack.class?.name || '',
-      updatedAt: stack.updatedAt,
-      createdAt: stack.createdAt,
-    }))
+    const classes = userClasses.sort((left: any, right: any) => {
+      const rightLastOpenedAt = getRecencyValue(right.lastOpenedAt)
+      const leftLastOpenedAt = getRecencyValue(left.lastOpenedAt)
+
+      if (rightLastOpenedAt !== leftLastOpenedAt) {
+        return rightLastOpenedAt - leftLastOpenedAt
+      }
+
+      return getRecencyValue(right.updatedAt || right.createdAt) - getRecencyValue(left.updatedAt || left.createdAt)
+    })
+
+    const stacks = userStacks
+      .map((stack: any) => {
+        const currentUser = stack.users?.find((user: any) => user.account?.toString() === account._id.toString())
+
+        return {
+          _id: stack._id,
+          name: stack.name,
+          className: stack.class?.name || '',
+          updatedAt: stack.updatedAt,
+          createdAt: stack.createdAt,
+          lastOpenedAt: currentUser?.lastOpenedAt,
+        }
+      })
+      .sort((left: any, right: any) => {
+        const rightLastOpenedAt = getRecencyValue(right.lastOpenedAt)
+        const leftLastOpenedAt = getRecencyValue(left.lastOpenedAt)
+
+        if (rightLastOpenedAt !== leftLastOpenedAt) {
+          return rightLastOpenedAt - leftLastOpenedAt
+        }
+
+        return getRecencyValue(right.updatedAt || right.createdAt) - getRecencyValue(left.updatedAt || left.createdAt)
+      })
 
     res.status(200).json({
       message: 'Successfully got account',
       data: account,
-      classes: userClasses,
+      classes,
       stacks,
     })
   } catch (error) {

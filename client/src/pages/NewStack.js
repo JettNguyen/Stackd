@@ -11,6 +11,8 @@ import './NewStack.css';
 const NewStack = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const editingStackId = location.state?.stackId ?? null;
+  const isEditing = Boolean(editingStackId);
   const initialStackName = location.state?.stackName ?? '';
   const initialSelectedClassId = location.state?.selectedClassId ?? null;
   const initialCards = location.state?.cards?.length
@@ -240,7 +242,7 @@ const NewStack = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedClassId(null);
+    setSelectedClassId(initialSelectedClassId);
     setIsCreatingClass(false);
     setNewClassName('');
   };
@@ -264,16 +266,18 @@ const NewStack = () => {
         classId = created?.data?._id || null;
       }
 
-      await apiRequest('/stack/create', {
+      const payload = {
+        name: stackName.trim(),
+        classId,
+        cards: cards.map((card) => ({ term: card.term, definition: card.definition })),
+      };
+
+      await apiRequest(isEditing ? '/stack/update' : '/stack/create', {
         method: 'POST',
-        body: JSON.stringify({
-          name: stackName.trim(),
-          classId,
-          cards: cards.map((card) => ({ term: card.term, definition: card.definition })),
-        }),
+        body: JSON.stringify(isEditing ? { stackId: editingStackId, ...payload } : payload),
       });
       handleCloseModal();
-      navigate('/home');
+      navigate(isEditing ? `/stack/${editingStackId}` : '/home');
     } catch (err) {
       setFeedback(err.message || 'Failed to save stack. Please try again.');
       setIsModalOpen(false);
@@ -287,7 +291,7 @@ const NewStack = () => {
       <Breadcrumbs
         items={[
           { label: 'Home', to: '/home' },
-          { label: 'New Stack' },
+          { label: isEditing ? 'Edit Stack' : 'New Stack' },
         ]}
       />
 
@@ -532,8 +536,8 @@ const NewStack = () => {
             <span>add</span>
           </button>
 
-          <button type="button" className="save-stack-button" onClick={handleOpenModal}>
-            Add to...
+          <button type="button" className="save-stack-button" onClick={isEditing ? handleSaveStack : handleOpenModal}>
+            {isEditing ? 'Save' : 'Add to...'}
           </button>
         </section>
       </div>
