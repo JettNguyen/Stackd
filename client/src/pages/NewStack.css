@@ -168,6 +168,47 @@
 	color: var(--color-primary);
 }
 
+.generating-loader {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.generating-dots {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+
+.generating-dots span {
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color: var(--color-primary);
+	animation: generating-bounce 1.5s ease-in-out infinite;
+}
+
+.generating-dots span:nth-child(1) {
+	animation-delay: 0s;
+}
+.generating-dots span:nth-child(2) {
+	animation-delay: 0.2s;
+}
+.generating-dots span:nth-child(3) {
+	animation-delay: 0.4s;
+}
+
+@keyframes generating-bounce {
+	0%, 60%, 100% {
+		transform: translateY(0); opacity: 0.4;
+	}
+	30% {
+		transform: translateY(-4px); opacity: 1;
+	}
+}
+
 .import-button {
 	padding: 10px 20px;
 	border-radius: 15px;

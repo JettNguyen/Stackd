@@ -505,7 +505,16 @@ const NewStack = () => {
                 </button>
               </div>
 
-              {isGeneratingVisible && <p className="import-feedback">Generating cards...</p>}
+              {isGeneratingVisible && (
+                <div className="import-feedback generating-loader">
+                  <span>Generating cards</span>
+                  <span className="generating-dots">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                </div>
+              )}
               {aiFeedback && <p className={`import-feedback ${aiFeedbackIsError ? 'ai-file-error' : ''}`}>{aiFeedback}</p>}
             </div>
           )}
