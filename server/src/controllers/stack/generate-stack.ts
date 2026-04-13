@@ -3,7 +3,8 @@ import joi from '../../utils/joi'
 import { GEMINI_API_KEY } from '../../constants'
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
-const GEMINI_MODEL = 'gemini-2.5-flash'
+const GEMINI_UPLOAD_BASE = 'https://generativelanguage.googleapis.com/upload/v1beta'
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite']
 
 const allowedMimeTypes = [
   'application/pdf',
@@ -17,9 +18,10 @@ type UploadedFile = {
   buffer: Buffer
 }
 
-type FileData = {
+type FileRef = {
+  name: string
+  uri: string
   mimeType: string
-  base64: string
 }
 
 const normalizeModelName = (name: string) => {
@@ -32,49 +34,80 @@ const fail = (next: Parameters<RequestHandler>[2], statusCode: number, message: 
   next({ statusCode, message, ...(details ? { details } : {}) })
 }
 
-const generateWithModel = async (
-  modelName: string,
-  systemPrompt: string,
-  userText: string,
-  files?: FileData[]
-) => {
-  const url = `${GEMINI_API_BASE}/${modelName}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
+const uploadFileToGemini = async (buffer: Buffer, mimeType: string, index: number): Promise<FileRef> => {
+  const boundary = `gemini_boundary_${Date.now()}_${index}`
+  const metadata = JSON.stringify({ file: { display_name: `upload_${index}` } })
 
-  const userParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
-    { text: userText },
-  ]
-  for (const file of files ?? []) {
-    userParts.push({ inlineData: { mimeType: file.mimeType, data: file.base64 } })
-  }
+  const prefix = Buffer.from(
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`
+  )
+  const suffix = Buffer.from(`\r\n--${boundary}--`)
+  const body = Buffer.concat([prefix, buffer, suffix])
+
+  const url = `${GEMINI_UPLOAD_BASE}/files?uploadType=multipart&key=${encodeURIComponent(GEMINI_API_KEY)}`
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [
-        {
-          role: 'user',
-          parts: userParts,
-        },
-      ],
-      generationConfig: { temperature: 0.2 },
-    }),
+    headers: {
+      'Content-Type': `multipart/related; boundary=${boundary}`,
+      'Content-Length': String(body.length),
+    },
+    body: new Uint8Array(body),
   })
 
   if (!response.ok) {
     const details = await response.text().catch(() => '')
-    throw new Error(`generateContent failed for ${modelName} (${response.status}): ${details || response.statusText}`)
+    throw new Error(`File upload failed (${response.status}): ${details || response.statusText}`)
   }
 
-  const payload = (await response.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+  const payload = (await response.json()) as { file: FileRef }
+  return payload.file
+}
+
+const deleteGeminiFile = (fileName: string): void => {
+  const url = `${GEMINI_API_BASE}/${fileName}?key=${encodeURIComponent(GEMINI_API_KEY)}`
+  fetch(url, { method: 'DELETE' }).catch(() => {})
+}
+
+const generateWithModel = async (
+  modelName: string,
+  systemPrompt: string,
+  userText: string,
+  fileRefs?: FileRef[]
+) => {
+  const url = `${GEMINI_API_BASE}/${modelName}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
+
+  const userParts: Array<{ text?: string; fileData?: { mimeType: string; fileUri: string } }> = [
+    { text: userText },
+  ]
+  for (const ref of fileRefs ?? []) {
+    userParts.push({ fileData: { mimeType: ref.mimeType, fileUri: ref.uri } })
   }
 
-  return (payload.candidates?.[0]?.content?.parts || [])
-    .map((part) => String(part.text || ''))
-    .join('\n')
-    .trim()
+  const requestBody = JSON.stringify({
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents: [{ role: 'user', parts: userParts }],
+    generationConfig: { temperature: 0.2 },
+  })
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: requestBody,
+  })
+
+  if (response.ok) {
+    const payload = (await response.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
+    }
+    return (payload.candidates?.[0]?.content?.parts || [])
+      .map((part) => String(part.text || ''))
+      .join('\n')
+      .trim()
+  }
+
+  const details = await response.text().catch(() => '')
+  throw new Error(`generateContent failed for ${modelName} (${response.status}): ${details || response.statusText}`)
 }
 
 const generateStack: RequestHandler = async (req, res, next) => {
@@ -132,10 +165,24 @@ const generateStack: RequestHandler = async (req, res, next) => {
 
     const cardCount = isAutoCardCount ? null : numericCardCount
     const notes = String(req.body.notes || '').trim()
-    const fileDataList: FileData[] = uploadedFiles.map((f) => ({
-      mimeType: String(f.mimetype || '').trim(),
-      base64: f.buffer.toString('base64'),
-    }))
+
+    const fileRefs: FileRef[] = []
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const f = uploadedFiles[i]
+      try {
+        const ref = await uploadFileToGemini(f.buffer, String(f.mimetype || '').trim(), i)
+        fileRefs.push(ref)
+      } catch (error) {
+        for (const ref of fileRefs) deleteGeminiFile(ref.name)
+        fail(
+          next,
+          502,
+          'Failed to upload file to Gemini',
+          error instanceof Error ? error.message : String(error || '')
+        )
+        return
+      }
+    }
 
     const systemPrompt = [
       'You are a flashcard generation engine for students. Your only function is to read study material and produce flashcards from it. You do nothing else.',
@@ -162,25 +209,38 @@ const generateStack: RequestHandler = async (req, res, next) => {
 
     const userText = [
       cardCount === null
-        ? 'Generate an appropriate number of flashcards from the material below. Cover key concepts without redundancy. Focus on quality over quantity. Do not pad with trivial, overly similar, or low-value cards. Never exceed 100 cards unless the material is very complex and requires it.'
+        ? 'Generate an appropriate number of flashcards from the material below. Cover key concepts without redundancy. Focus on quality over quantity. Do not pad with trivial, overly similar, or low-value cards. Never exceed 100 cards unless the material is very complex and requires it. If the material does fit the complex criteria, the hard limit is 150 cards.'
         : `Generate exactly ${cardCount} flashcards from the material below.`,
       ...(pastedText ? [`\n<SOURCE_MATERIAL>\n${pastedText}\n</SOURCE_MATERIAL>`] : []),
       ...(notes ? [`\nStudent instructions: ${notes}`] : []),
     ].join('\n')
 
-    const modelName = normalizeModelName(GEMINI_MODEL)
     let outputText = ''
+    let lastError: unknown
 
     try {
-      outputText = await generateWithModel(modelName, systemPrompt, userText, fileDataList)
+      for (const model of GEMINI_MODELS) {
+        const modelName = normalizeModelName(model)
+        try {
+          outputText = await generateWithModel(modelName, systemPrompt, userText, fileRefs)
+          break
+        } catch (error) {
+          lastError = error
+          const is503 = error instanceof Error && error.message.includes('(503)')
+          if (!is503) throw error
+        }
+      }
+      if (!outputText && lastError) throw lastError
     } catch (error) {
       fail(
         next,
         502,
-        `Gemini generateContent failed for model ${modelName}`,
+        'Gemini generateContent failed. Please try again later.',
         error instanceof Error ? error.message : String(error || '')
       )
       return
+    } finally {
+      for (const ref of fileRefs) deleteGeminiFile(ref.name)
     }
 
     if (!outputText) {
