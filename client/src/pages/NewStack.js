@@ -40,7 +40,7 @@ const NewStack = () => {
   const [aiAutoCardCount, setAiAutoCardCount] = useState(false);
   const [aiNotes, setAiNotes] = useState('');
   const [aiFileError, setAiFileError] = useState('');
-  const [aiFile, setAiFile] = useState(null);
+  const [aiFiles, setAiFiles] = useState([]);
   const [aiPastedText, setAiPastedText] = useState('');
   const [isDesktopUpload, setIsDesktopUpload] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -122,26 +122,37 @@ const NewStack = () => {
 
   const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-  const setAiSelectedFile = (file) => {
-    if (file && file.size > MAX_FILE_SIZE) {
-      setAiFile(null);
-      setAiFileError(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum size is 15 MB.`);
+  const addAiFiles = (newFiles) => {
+    const fileArray = Array.from(newFiles || []);
+    const oversized = fileArray.find((f) => f.size > MAX_FILE_SIZE);
+    if (oversized) {
+      setAiFileError(`"${oversized.name}" is too large (${(oversized.size / (1024 * 1024)).toFixed(1)} MB). Maximum size is 15 MB.`);
       const input = document.getElementById(aiFileInputId);
       if (input) input.value = '';
       return;
     }
-    setAiFile(file || null);
+    setAiFiles((prev) => {
+      const existingNames = new Set(prev.map((f) => f.name));
+      const deduped = fileArray.filter((f) => !existingNames.has(f.name));
+      return [...prev, ...deduped];
+    });
     setAiFileError('');
     setAiFeedback('');
     setAiFeedbackIsError(false);
+    const input = document.getElementById(aiFileInputId);
+    if (input) input.value = '';
+  };
+
+  const removeAiFile = (name) => {
+    setAiFiles((prev) => prev.filter((f) => f.name !== name));
   };
 
   const handleSelectAiFile = (event) => {
-    setAiSelectedFile(event.target.files?.[0]);
+    addAiFiles(event.target.files);
   };
 
   const handleGenerateCards = async () => {
-    if (!aiFile && !aiPastedText.trim()) {
+    if (aiFiles.length === 0 && !aiPastedText.trim()) {
       setAiFeedback('Please upload a file or paste some text first.');
       setAiFeedbackIsError(true);
       return;
@@ -165,7 +176,7 @@ const NewStack = () => {
 
     try {
       const formData = new FormData();
-      if (aiFile) formData.append('file', aiFile);
+      for (const file of aiFiles) formData.append('files', file);
       if (aiPastedText.trim()) formData.append('pastedText', aiPastedText.trim());
       formData.append('cardCount', aiAutoCardCount ? 'auto' : String(requestedCardCount));
 
@@ -203,7 +214,7 @@ const NewStack = () => {
   const handleDropAiFile = (event) => {
     event.preventDefault();
     setIsDragOver(false);
-    setAiSelectedFile(event.dataTransfer.files?.[0]);
+    addAiFiles(event.dataTransfer.files);
   };
 
   const handleCardChange = (id, field, value) => {
@@ -371,6 +382,15 @@ const NewStack = () => {
             <div className="import-body">
               <p className="new-stack-modal-subtitle">Upload class materials and have AI generate cards for you!</p>
 
+              <input
+                id={aiFileInputId}
+                type="file"
+                accept="application/pdf,image/*,text/plain,.txt,.md,.csv"
+                multiple
+                onChange={handleSelectAiFile}
+                className="ai-upload-hidden-input"
+              />
+
               {isDesktopUpload ? (
                 <div
                   className={`import-textarea ai-upload-dropzone ${isDragOver ? 'ai-upload-dropzone-dragover' : ''}`}
@@ -390,37 +410,22 @@ const NewStack = () => {
                     }
                   }}
                 >
-                  <span>{aiFile ? aiFile.name : 'Drop PDF, image, or text file here'}</span>
+                  <span>Drop PDFs, images, or text files here</span>
                 </div>
               ) : (
                 <div className="ai-file-select-row">
-                  <input
-                    id={aiFileInputId}
-                    type="file"
-                    accept="application/pdf,image/*,text/plain,.txt,.md,.csv"
-                    onChange={handleSelectAiFile}
-                    className="ai-upload-hidden-input"
-                  />
                   <button
                     type="button"
                     className="import-button"
                     onClick={() => document.getElementById(aiFileInputId)?.click()}
                   >
-                    Choose File
+                    Choose Files
                   </button>
-                  {aiFile && <span className="ai-file-name">{aiFile.name}</span>}
                 </div>
               )}
 
               {isDesktopUpload && (
                 <div className="import-actions">
-                  <input
-                    id={aiFileInputId}
-                    type="file"
-                    accept="application/pdf,image/*,text/plain,.txt,.md,.csv"
-                    onChange={handleSelectAiFile}
-                    className="ai-upload-hidden-input"
-                  />
                   <button
                     type="button"
                     className="import-button"
@@ -429,6 +434,24 @@ const NewStack = () => {
                     Browse Files
                   </button>
                 </div>
+              )}
+
+              {aiFiles.length > 0 && (
+                <ul className="ai-file-list">
+                  {aiFiles.map((file) => (
+                    <li key={file.name} className="ai-file-list-item">
+                      <span className="ai-file-list-name">{file.name}</span>
+                      <button
+                        type="button"
+                        className="ai-file-list-remove"
+                        onClick={() => removeAiFile(file.name)}
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
 
               {aiFileError && <p className="import-feedback ai-file-error">{aiFileError}</p>}

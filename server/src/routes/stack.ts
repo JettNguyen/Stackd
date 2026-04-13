@@ -16,6 +16,6 @@ router.get('/view', [checkOptionalBearerToken], view, errorHandler)
 router.post('/create', [checkBearerToken], create, errorHandler)
 router.post('/update', [checkBearerToken], update, errorHandler)
 router.post('/delete', [checkBearerToken], deleteStack, errorHandler)
-router.post('/generate', [checkBearerToken, upload.single('file')], generateStack, errorHandler)
+router.post('/generate', [checkBearerToken, upload.array('files', 10)], generateStack, errorHandler)
 
 export default router

@@ -17,6 +17,11 @@ type UploadedFile = {
   buffer: Buffer
 }
 
+type FileData = {
+  mimeType: string
+  base64: string
+}
+
 const normalizeModelName = (name: string) => {
   const value = String(name || '').trim()
   if (!value) return ''
@@ -31,16 +36,15 @@ const generateWithModel = async (
   modelName: string,
   systemPrompt: string,
   userText: string,
-  fileMimeType?: string,
-  base64Data?: string
+  files?: FileData[]
 ) => {
   const url = `${GEMINI_API_BASE}/${modelName}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
 
   const userParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
     { text: userText },
   ]
-  if (fileMimeType && base64Data) {
-    userParts.push({ inlineData: { mimeType: fileMimeType, data: base64Data } })
+  for (const file of files ?? []) {
+    userParts.push({ inlineData: { mimeType: file.mimeType, data: file.base64 } })
   }
 
   const response = await fetch(url, {
@@ -80,23 +84,21 @@ const generateStack: RequestHandler = async (req, res, next) => {
       return
     }
 
-    const file = (req as any).file as UploadedFile | undefined
+    const uploadedFiles = ((req as any).files ?? []) as UploadedFile[]
     const pastedText = String(req.body.pastedText || '').trim()
 
-    if (!file && !pastedText) {
+    if (uploadedFiles.length === 0 && !pastedText) {
       fail(next, 400, 'Provide a file or paste text to generate cards from')
       return
     }
 
-    const fileMimeType = file ? String(file.mimetype || '').trim() : undefined
-
-    if (file && !fileMimeType) {
-      fail(next, 400, 'File mime type is required')
-      return
-    }
-
-    if (file) {
-      const isAllowedType = fileMimeType!.startsWith('image/') || allowedMimeTypes.includes(fileMimeType!)
+    for (const uploadedFile of uploadedFiles) {
+      const mimeType = String(uploadedFile.mimetype || '').trim()
+      if (!mimeType) {
+        fail(next, 400, 'File mime type is required')
+        return
+      }
+      const isAllowedType = mimeType.startsWith('image/') || allowedMimeTypes.includes(mimeType)
       if (!isAllowedType) {
         fail(next, 400, 'Unsupported file type. Upload a PDF, image, or text file.')
         return
@@ -130,7 +132,10 @@ const generateStack: RequestHandler = async (req, res, next) => {
 
     const cardCount = isAutoCardCount ? null : numericCardCount
     const notes = String(req.body.notes || '').trim()
-    const base64Data = file ? file.buffer.toString('base64') : undefined
+    const fileDataList: FileData[] = uploadedFiles.map((f) => ({
+      mimeType: String(f.mimetype || '').trim(),
+      base64: f.buffer.toString('base64'),
+    }))
 
     const systemPrompt = [
       'You generate flashcards from user-provided material.',
@@ -157,7 +162,7 @@ const generateStack: RequestHandler = async (req, res, next) => {
     let outputText = ''
 
     try {
-      outputText = await generateWithModel(modelName, systemPrompt, userText, fileMimeType, base64Data)
+      outputText = await generateWithModel(modelName, systemPrompt, userText, fileDataList)
     } catch (error) {
       fail(
         next,
