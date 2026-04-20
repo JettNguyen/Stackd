@@ -130,7 +130,6 @@
     font-weight: 700;
     text-transform: uppercase;
     color: var(--text-secondary);
-    padding-top: 15px;
     padding-bottom: 2px;
 }
 
@@ -141,6 +140,7 @@
     width: 100%;
     min-height: 50px;
     padding: 10px 15px;
+    margin-bottom: 15px;
     background-color: var(--bg-card);
     border: none;
     border-radius: 10px;

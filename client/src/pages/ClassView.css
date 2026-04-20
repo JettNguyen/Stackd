@@ -144,7 +144,7 @@
 	font-size: 14px;
 	font-weight: 500;
 	transition: all 0.2s ease;
-	margin-top: 10px;
+	margin-bottom: 15px;
 }
 
 .modal-collapsible-header:hover:not(:disabled) {
