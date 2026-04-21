@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -24,6 +24,27 @@ import useDelayedSpinner from '../utils/useDelayedSpinner';
 import './StackView.css';
 
 const StackView = () => {
+  const MOBILE_LANDSCAPE_QUERY = '(orientation: landscape) and (hover: none) and (pointer: coarse) and (max-width: 1024px)';
+  const isLikelyMobileDevice = () => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    const ua = navigator.userAgent || '';
+    const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const isIPadDesktopUA = /Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1;
+    const isMobileFromUAData = Boolean(navigator.userAgentData?.mobile);
+
+    return isMobileUA || isIPadDesktopUA || isMobileFromUAData;
+  };
+  const STUDY_META_FADE_DURATION = 220;
+  const STUDY_LIST_EXIT_DELAY = 180;
+  const STUDY_LIST_EXIT_DURATION = 280;
+  const STUDY_EXIT_DURATION = 360;
+  const STUDY_ENTER_DURATION = 420;
+  const BROWSE_ENTER_DURATION = 420;
+  const isMobileDevice = isLikelyMobileDevice();
+
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -41,6 +62,12 @@ const StackView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingVisible = useDelayedSpinner(isLoading, 1000);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState(null);
+  const [isStudyContentEntering, setIsStudyContentEntering] = useState(false);
+  const [isBrowseContentEntering, setIsBrowseContentEntering] = useState(false);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
+  const [manualModeOverride, setManualModeOverride] = useState(null);
 
   const stackBreadcrumbItems = useMemo(() => {
     const items = [{ label: 'Home', to: '/home' }];
@@ -54,6 +81,14 @@ const StackView = () => {
   }, [stack]);
 
   const copyTimeoutRef = useRef(null);
+  const transitionTimeoutsRef = useRef([]);
+  const slideDirectionRef = useRef(null);
+  const lastMobileLandscapeRef = useRef(null);
+
+  const clearTransitionTimeouts = useCallback(() => {
+    transitionTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+    transitionTimeoutsRef.current = [];
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,6 +110,7 @@ const StackView = () => {
         setStack({
           id: apiStack?._id,
           name: apiStack?.name || 'Stack',
+          classId: apiStack?.class || null,
           className: response?.className || '',
         });
 
@@ -130,15 +166,162 @@ const StackView = () => {
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
+
+      clearTransitionTimeouts();
     };
-  }, []);
+  }, [clearTransitionTimeouts]);
 
+  useEffect(() => {
+    document.body.classList.toggle('study-mode-nav-hidden', isStudyMode);
 
-  const handleStudy = () => {
-    setIsStudyMode(true);
+    return () => {
+      document.body.classList.remove('study-mode-nav-hidden');
+    };
+  }, [isStudyMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia(MOBILE_LANDSCAPE_QUERY);
+    const updateLandscapeState = (matches) => {
+      setIsMobileLandscape(matches && isMobileDevice);
+    };
+
+    const handleChange = (event) => {
+      updateLandscapeState(event.matches);
+    };
+
+    const handleResize = () => {
+      updateLandscapeState(mediaQuery.matches);
+    };
+
+    updateLandscapeState(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [MOBILE_LANDSCAPE_QUERY, isMobileDevice]);
+
+  const isTransitioningToStudy = transitionDirection === 'to-study';
+  const isTransitioningToBrowse = transitionDirection === 'to-browse';
+  const isAnimatingTransition = Boolean(transitionDirection || isStudyContentEntering || isBrowseContentEntering);
+  const isLandscapeStudyLayout = isStudyMode && isMobileLandscape;
+
+  const handleStudy = useCallback(() => {
+    if (isStudyMode || isAnimatingTransition) {
+      return;
+    }
+
+    setManualModeOverride('study');
+    clearTransitionTimeouts();
+    slideDirectionRef.current = null;
+    setIsSettingsOpen(false);
     setCurrentCardIndex(0);
     setShowDefinition(false);
-  };
+    setIsBrowseContentEntering(false);
+    setTransitionDirection('to-study');
+
+    const switchToStudyDelay = STUDY_META_FADE_DURATION + STUDY_LIST_EXIT_DELAY + STUDY_LIST_EXIT_DURATION;
+    const switchTimeoutId = setTimeout(() => {
+      setIsStudyMode(true);
+      setTransitionDirection(null);
+      setIsStudyContentEntering(true);
+
+      const enterTimeoutId = setTimeout(() => {
+        setIsStudyContentEntering(false);
+      }, STUDY_ENTER_DURATION);
+
+      transitionTimeoutsRef.current.push(enterTimeoutId);
+    }, switchToStudyDelay);
+
+    transitionTimeoutsRef.current.push(switchTimeoutId);
+  }, [
+    isStudyMode,
+    isAnimatingTransition,
+    clearTransitionTimeouts,
+    STUDY_META_FADE_DURATION,
+    STUDY_LIST_EXIT_DELAY,
+    STUDY_LIST_EXIT_DURATION,
+    STUDY_ENTER_DURATION,
+  ]);
+
+  const handleExitStudy = useCallback(() => {
+    if (!isStudyMode || isAnimatingTransition) {
+      return;
+    }
+
+    setManualModeOverride('browse');
+    clearTransitionTimeouts();
+    slideDirectionRef.current = null;
+    setIsStudyContentEntering(false);
+    setTransitionDirection('to-browse');
+
+    const switchToBrowseId = setTimeout(() => {
+      setIsStudyMode(false);
+      setTransitionDirection(null);
+      setIsBrowseContentEntering(true);
+
+      const browseEnterTimeoutId = setTimeout(() => {
+        setIsBrowseContentEntering(false);
+      }, BROWSE_ENTER_DURATION);
+
+      transitionTimeoutsRef.current.push(browseEnterTimeoutId);
+    }, STUDY_EXIT_DURATION);
+
+    transitionTimeoutsRef.current.push(switchToBrowseId);
+  }, [
+    isStudyMode,
+    isAnimatingTransition,
+    clearTransitionTimeouts,
+    STUDY_EXIT_DURATION,
+    BROWSE_ENTER_DURATION,
+  ]);
+
+  useEffect(() => {
+    if (lastMobileLandscapeRef.current === null) {
+      lastMobileLandscapeRef.current = isMobileLandscape;
+      return;
+    }
+
+    if (lastMobileLandscapeRef.current !== isMobileLandscape) {
+      setManualModeOverride(null);
+      lastMobileLandscapeRef.current = isMobileLandscape;
+    }
+  }, [isMobileLandscape]);
+
+  useEffect(() => {
+    if (!isMobileDevice) {
+      return;
+    }
+
+    if (manualModeOverride !== null) {
+      return;
+    }
+
+    if (isMobileLandscape && !isStudyMode && !isAnimatingTransition) {
+      handleStudy();
+    }
+  }, [
+    isMobileDevice,
+    isMobileLandscape,
+    isStudyMode,
+    isAnimatingTransition,
+    manualModeOverride,
+    handleStudy,
+  ]);
+
+  useEffect(() => {
+    document.body.classList.toggle('mobile-landscape-study-active', isLandscapeStudyLayout);
+
+    return () => {
+      document.body.classList.remove('mobile-landscape-study-active');
+    };
+  }, [isLandscapeStudyLayout]);
 
   const handleEdit = () => {
     if (!stack) {
@@ -147,7 +330,9 @@ const StackView = () => {
 
     navigate('/stack/new', {
       state: {
+        stackId: stack.id,
         stackName: stack.name,
+        selectedClassId: stack.classId || null,
         cards: stackCards,
       },
     });
@@ -188,6 +373,8 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = 'prev';
+    setIsFlipping(false);
     setCurrentCardIndex((prev) => prev - 1);
     setShowDefinition(false);
   };
@@ -197,6 +384,8 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = 'next';
+    setIsFlipping(false);
     setCurrentCardIndex((prev) => prev + 1);
     setShowDefinition(false);
   };
@@ -206,6 +395,7 @@ const StackView = () => {
       return;
     }
 
+    slideDirectionRef.current = null;
     setIsFlipping(true);
     setTimeout(() => setShowDefinition((prev) => !prev), 125);
     setTimeout(() => setIsFlipping(false), 250);
@@ -235,10 +425,22 @@ const StackView = () => {
   };
 
   const handleUnavailableAction = (label) => {
-    setActionMessage(`${label} will be available once stack action routes are added.`);
-    setTimeout(() => {
-      setActionMessage('');
-    }, 2000);
+    setActionMessage(`${label} is currently unavailable.`);
+    setTimeout(() => setActionMessage(''), 2000);
+  };
+
+  const confirmDeleteStack = async () => {
+    setIsDeleteModalOpen(false);
+    setActionMessage('Deleting stack...');
+    try {
+      await apiRequest('/stack/delete', {
+        method: 'POST',
+        body: JSON.stringify({ stackId: stack.id }),
+      });
+      navigate('/home');
+    } catch (err) {
+      setActionMessage(err?.payload?.message || err?.message || 'Failed to delete stack.');
+    }
   };
 
   const isOwner = role === 'owner';
@@ -248,11 +450,13 @@ const StackView = () => {
   if (isLoading) {
     return (
       <div className="stack-view-page">
-        {isLoadingVisible && (
+        {isLoadingVisible ? (
           <div className="stack-view-loading" role="status" aria-live="polite">
             <div className="stack-view-loading-spinner"></div>
             <p>Loading stack...</p>
           </div>
+        ) : (
+          <div className="stack-view-loading-delayed-placeholder" aria-hidden="true" />
         )}
       </div>
     );
@@ -273,10 +477,11 @@ const StackView = () => {
 
   return (
     <div className="stack-view-page">
-      <div className="stack-view-content content-appear">
+      <div className={`stack-view-content content-appear${isLandscapeStudyLayout ? ' landscape-study-layout' : ''}`}>
         <Breadcrumbs items={stackBreadcrumbItems} />
+        <div className="stack-view-stage">
         {!isStudyMode ? (
-          <div className="stack-browse-mode">
+          <div className={`stack-browse-mode ${isTransitioningToStudy ? 'transitioning-to-study' : ''} ${isBrowseContentEntering ? 'entering-from-study' : ''}`}>
             <div className="stack-actions">
               <button
                 type="button"
@@ -329,7 +534,12 @@ const StackView = () => {
             </div>
 
             <div className="stack-action-buttons">
-              <button type="button" className="view-button" onClick={handleStudy}>
+              <button
+                type="button"
+                className={`view-button ${isTransitioningToStudy ? 'view-button-transitioning' : ''} ${isBrowseContentEntering ? 'view-button-entering' : ''}`}
+                onClick={handleStudy}
+                disabled={isAnimatingTransition}
+              >
                 <FontAwesomeIcon icon={faGlasses} />
                 <span>Study</span>
               </button>
@@ -339,6 +549,7 @@ const StackView = () => {
                 className="stack-settings-button"
                 onClick={() => setIsSettingsOpen(true)}
                 aria-label="Stack settings"
+                disabled={isAnimatingTransition}
               >
                 <FontAwesomeIcon icon={faCog} />
               </button>
@@ -392,7 +603,7 @@ const StackView = () => {
             </div>
           </div>
         ) : (
-          <div className="study-mode">
+          <div className={`study-mode ${isStudyContentEntering ? 'study-mode-entering' : ''} ${isTransitioningToBrowse ? 'study-mode-exiting' : ''}${isLandscapeStudyLayout ? ' mobile-landscape-study' : ''}`}>
             <div className="stack-card-large study-card-display">
               <div className="stack-layer-back"></div>
               <div className="stack-layer-middle"></div>
@@ -401,16 +612,20 @@ const StackView = () => {
               </div>
             </div>
 
-            <button type="button" className="view-button study-active" onClick={() => setIsStudyMode(false)}>
+            <button
+              type="button"
+              className={`view-button study-active ${isStudyContentEntering ? 'study-view-button-entering' : ''} ${isTransitioningToBrowse ? 'study-view-button-exiting' : ''}`}
+              onClick={handleExitStudy}
+            >
               <FontAwesomeIcon icon={faGlasses} />
               <span>view</span>
             </button>
 
-            <div className="card-counter">
+            <div className={`card-counter ${isStudyContentEntering ? 'study-detail-entering' : ''} ${isTransitioningToBrowse ? 'study-detail-exiting' : ''}`}>
               <span>{currentCardIndex + 1}/{stackCards.length}</span>
             </div>
 
-            <div className="study-flashcard-container">
+            <div className={`study-flashcard-container ${isStudyContentEntering ? 'study-detail-entering' : ''} ${isTransitioningToBrowse ? 'study-detail-exiting' : ''}`}>
               <button
                 type="button"
                 className="nav-arrow left-arrow"
@@ -420,13 +635,17 @@ const StackView = () => {
                 <FontAwesomeIcon icon={faChevronLeft} />
               </button>
 
-              <div className={`study-flashcard ${isFlipping ? 'flipping' : ''}`} onClick={handleCardClick}>
+              <div
+                key={currentCardIndex}
+                className={`study-flashcard ${isFlipping ? 'flipping' : ''}${slideDirectionRef.current ? ` slide-in-${slideDirectionRef.current}` : ''}`}
+                onClick={handleCardClick}
+              >
                 {currentCard && cardStatuses[currentCard.id] && (
                   <div className={`card-status-badge ${cardStatuses[currentCard.id]}`}>
                     <FontAwesomeIcon icon={cardStatuses[currentCard.id] === 'star' ? faStar : faCheck} />
                   </div>
                 )}
-                <span className="study-card-text">
+                <span className={`study-card-text ${showDefinition ? 'showing-definition' : ''}`}>
                   {showDefinition ? currentCard?.definition || '' : currentCard?.term || ''}
                 </span>
               </div>
@@ -442,7 +661,7 @@ const StackView = () => {
             </div>
 
             {createPortal(
-              <div className="study-actions-bar">
+              <div className={`study-actions-bar ${isStudyContentEntering ? 'study-actions-bar-transitioning' : ''} ${isTransitioningToBrowse ? 'study-actions-bar-exiting' : ''}`}>
                 <button
                   type="button"
                   className={`study-action-btn star-btn ${currentCard && cardStatuses[currentCard.id] === 'star' ? 'active' : ''}`}
@@ -462,7 +681,32 @@ const StackView = () => {
             )}
           </div>
         )}
+        </div>
       </div>
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Stack"
+      >
+        <p>Are you sure you want to delete this stack? This action cannot be undone.</p>
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="switch-button"
+            onClick={() => setIsDeleteModalOpen(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="login-button"
+            onClick={confirmDeleteStack}
+          >
+            Delete Stack
+          </button>
+        </div>
+      </Modal>
 
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="Stack Settings">
         {/* Membership Section */}
@@ -536,7 +780,6 @@ const StackView = () => {
           </div>
         )}
 
-        {/* Danger Zone */}
         {isOwner && (
           <div className="modal-section modal-danger-section">
             <h3 className="modal-section-title">Danger Zone</h3>
@@ -544,8 +787,8 @@ const StackView = () => {
               type="button"
               className="modal-option-button"
               onClick={() => {
-                handleUnavailableAction('Delete stack');
                 setIsSettingsOpen(false);
+                setIsDeleteModalOpen(true);
               }}
             >
               <div className="modal-option-icon">
@@ -563,7 +806,17 @@ const StackView = () => {
             <div className="modal-members-list">
               {users.map((member) => (
                 <div key={`${member.accountId}-${member.username}`} className="modal-member-chip">
-                  <span className="modal-member-name">{member.username}</span>
+                  <button
+                    type="button"
+                    className="modal-member-name"
+                    onClick={() => {
+                      setIsSettingsOpen(false)
+                      navigate(`/profile/${member.username}`)
+                    }}
+                    aria-label={`View ${member.username}'s profile`}
+                  >
+                    {member.username}
+                  </button>
                   <span className="modal-member-role">{member.role}</span>
                 </div>
               ))}

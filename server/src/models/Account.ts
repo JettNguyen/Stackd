@@ -3,11 +3,14 @@ import { Account } from '../@types'
 
 const accountSchema = new Schema<Account>(
   {
-    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+    email: { type: String, lowercase: true, trim: true },
     username: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    publicProfile: { type: Boolean, default: false },
   },
   { timestamps: true }
 )
+
+accountSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { email: { $exists: true, $nin: [null, ''] } } })
 
 export default model<Account>('Account', accountSchema)

@@ -1,4 +1,23 @@
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const resolveApiBase = () => {
+  const configuredBase = process.env.REACT_APP_API_URL?.trim();
+
+  if (configuredBase) {
+    return configuredBase.replace(/\/+$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    const apiPort = process.env.REACT_APP_API_PORT || '8080';
+
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `${protocol}//${hostname}:${apiPort}`;
+    }
+  }
+
+  return 'http://localhost:8080';
+};
+
+const API_BASE = resolveApiBase();
 const TOKEN_KEY = 'stackd_auth_token';
 
 const buildUrl = (path) => `${API_BASE}${path}`;
@@ -45,10 +64,14 @@ export const clearAuthToken = () => {
 
 export const apiRequest = async (path, options = {}) => {
   const token = getAuthToken();
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  if (!isFormDataBody && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -59,10 +82,16 @@ export const apiRequest = async (path, options = {}) => {
     headers,
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json')
+    ? await response.json().catch(() => ({}))
+    : await response.text().catch(() => '');
 
   if (!response.ok) {
-    const error = new Error(payload?.message || 'Request failed');
+    const errorMessage = typeof payload === 'string'
+      ? payload
+      : payload?.message;
+    const error = new Error(errorMessage || 'Request failed');
     error.status = response.status;
     error.payload = payload;
     throw error;

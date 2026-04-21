@@ -1,20 +1,43 @@
 # Stackd
 
 <p align='center'>
-    <img src="/client/src/assets/logo.png" width="140"/>
+    <img src="/client/src/assets/logo.png" width="150"/>
 </p>
 
-A web app custom made for UF students to store and study flashcards.
+A flashcard study app built for University of Florida students.
 
-## Project Overview
+<h3 align='center'>
+    <a href='https://jettnguyen.github.io/Stackd/'>Live Demo</a>
+</h3>
 
-**Problem**: University of Florida students need a useful digital platform to store and study their class materials on-the-go.
+## Features
 
-**Solution**: A web app to create, edit, and share decks and folders of flashcards.
+- **Flashcard Decks**: Create and edit decks of flashcards for any subject
+- **Folders**: Organize decks into folders to keep your courses tidy
+- **Study Mode**: Flip through cards to review and memorize material
+- **AI Card Generation**: Generate flashcard sets automatically from your notes or topics
+- **Share Decks**: Share your decks with classmates
+- **Progressive Web App**: Install on your phone and use it like a native app
 
-## Target Audience
+## Install as an App (PWA)
 
-University of Florida students in classes that require memorization of concepts/vocabulary.
+For best experience, add Stackd to your home screen:
+
+**iOS:**
+
+- Open Stackd in Safari on your iPhone
+- Tap the `3 dots` then `Share` icon
+  - Depending on your Safari settings, you can just tap the `Share` icon
+- Select `Add to Home Screen`
+- Ensure `Open as Web App` is toggled **On**
+- Tap **Add**
+
+**Android:**
+
+- Open Stackd in Chrome on your Android device
+- Tap the three-dot menu
+- Select `Add to home screen`
+- Tap **Install**
 
 ## Dev Quick Start
 
@@ -38,24 +61,15 @@ npm install
 npm run dev
 ```
 
-Optional:
+## Developers
 
-For best experience, use Stackd in Progressive Web App (PWA) mode
+- [Mei Li](https://github.com/ufmeiqili) | Frontend Developer
+- [Thurstan Ngo](https://github.com/thurstan-ngo) | Backend Developer
+- [Jett Nguyen](https://github.com/JettNguyen) | Frontend & UI/UX Developer
+- [Johnson Nguyen](https://github.com/johnsonnguyen05) | Full Stack Developer
+- [Juilan Stennett](https://github.com/julianstennett) | Backend Developer
 
-**iOS:**
-
-- Go to the website on an iPhone
-- Press the ```Share``` icon
-- Select ```Add to Home Screen```
-- Ensure ```Open as Web App``` is toggled "On"
-- Add
-
-**Android:**
-
-- Go to the website on an Andoid device
-- Click the three dots to open the browser menu
-- Select ```Add to home screen```
-- Press ```Install```
+2026 | CIS4930: Internet Programming | Professor Albert Ritzhaupt
 
 ## Template
 

@@ -26,6 +26,7 @@
     font: inherit;
     text-decoration: underline;
     text-underline-offset: 1px;
+    transition: color 0.2s ease-in-out, filter 0.2s ease-in-out, opacity 0.2s ease-in-out;
   }
 
   .breadcrumbs-current {
@@ -39,15 +40,15 @@
   @media (hover: hover) and (pointer: fine) {
     .breadcrumbs-link:hover {
       color: var(--text-primary);
-      filter: brightness(0.98);
+      filter: brightness(0.92);
       text-decoration: underline;
     }
 
     .breadcrumbs-link:active {
       color: var(--text-primary);
-      filter: brightness(0.96);
+      filter: brightness(0.88);
       text-decoration: underline;
-      opacity: 0.8;
+      opacity: 0.7;
     }
   }
 }

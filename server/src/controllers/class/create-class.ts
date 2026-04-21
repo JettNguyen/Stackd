@@ -16,9 +16,7 @@ const create: RequestHandler = async (req, res, next) => {
       req.body
     )
 
-    if (validationError) {
-      return next(validationError)
-    }
+    if (validationError) return next(validationError)
 
     const name = String(req.body.name || '').trim()
     const visibility = (req.body.visibility || 'private') as 'public' | 'private'
@@ -43,7 +41,7 @@ const create: RequestHandler = async (req, res, next) => {
         }
       )
 
-      linkedStacks = updateResult.modifiedCount || 0
+      linkedStacks = (updateResult as any).modifiedCount || 0
     }
 
     return next({

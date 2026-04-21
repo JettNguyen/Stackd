@@ -41,21 +41,23 @@
 .page-header-back-button {
   border-radius: 10px;
   background-color: transparent;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .page-header-back-button:active {
   background-color: var(--bg-card);
+  transform: translateY(1px);
 }
 
 .page-header-profile-button {
   border-radius: 100%;
   background-color: var(--color-secondary);
-  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .page-header-profile-button:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .page-header-brand {
@@ -90,10 +92,14 @@
 @media (hover: hover) and (pointer: fine) {
   .page-header-back-button:hover {
     background-color: var(--bg-card);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .page-header-profile-button:hover {
     background-color: var(--color-secondary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 

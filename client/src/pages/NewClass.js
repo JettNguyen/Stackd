@@ -1,20 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faFolder } from '@fortawesome/free-solid-svg-icons';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { apiRequest, getAuthToken } from '../utils/api';
 import './NewClass.css';
 
+
 const NewClass = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const initialClassName = location.state?.className ?? '';
 
   const [className, setClassName] = useState(initialClassName);
-  const [isStacksOpen, setIsStacksOpen] = useState(false);
-  const [selectedStackIds, setSelectedStackIds] = useState([]);
   const [stacks, setStacks] = useState([]);
+  const [selectedStackIds, setSelectedStackIds] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState('');
 
@@ -30,21 +30,14 @@ const NewClass = () => {
       try {
         const response = await apiRequest('/account/user');
 
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
 
         const accountStacks = Array.isArray(response?.stacks) ? response.stacks : [];
         setStacks(
-          accountStacks.map((stack) => ({
-            id: stack._id,
-            name: stack.name,
-          }))
+          accountStacks.map((stack) => ({ id: stack._id, name: stack.name }))
         );
       } catch {
-        if (isMounted) {
-          setStacks([]);
-        }
+        if (isMounted) setStacks([]);
       }
     };
 
@@ -55,11 +48,7 @@ const NewClass = () => {
     };
   }, [navigate]);
 
-  const selectedStacks = useMemo(
-    () => stacks.filter((stack) => selectedStackIds.includes(stack.id)),
-    [stacks, selectedStackIds]
-  );
-
+  const selectedStacks = stacks.filter((stack) => selectedStackIds.includes(stack.id));
 
   const toggleStackSelection = (stackId) => {
     setSelectedStackIds((prev) =>
@@ -75,9 +64,7 @@ const NewClass = () => {
       return;
     }
 
-    if (isSaving) {
-      return;
-    }
+    if (isSaving) return;
 
     setIsSaving(true);
     setFeedback('');
@@ -85,10 +72,7 @@ const NewClass = () => {
     try {
       const response = await apiRequest('/class/create', {
         method: 'POST',
-        body: JSON.stringify({
-          name,
-          stackIds: selectedStackIds,
-        }),
+        body: JSON.stringify({ name, stackIds: selectedStackIds }),
       });
 
       const classId = response?.data?._id;
@@ -134,43 +118,31 @@ const NewClass = () => {
             placeholder="Class Name"
           />
         </div>
-        <section className={`stacks-section ${isStacksOpen ? 'open' : 'collapsed'}`}>
-          <button
-            type="button"
-            className="stacks-toggle"
-            onClick={() => setIsStacksOpen((prev) => !prev)}
-          >
-            <span>Add Stacks:</span>
-            <span className="stacks-chevron">
-              <FontAwesomeIcon icon={faChevronDown} />
-            </span>
-          </button>
 
+        <section className={`stacks-section ${stacks.length > 0 ? 'open' : 'collapsed'}`}>
           <div className="stacks-summary">
             {selectedStacks.length === 0
               ? 'Select one or more stacks'
               : selectedStacks.map((stack) => stack.name).join(', ')}
           </div>
 
-          {isStacksOpen && (
-            <div className="stacks-menu" role="listbox" aria-multiselectable="true">
-              {stacks.map((stack) => {
-                const isSelected = selectedStackIds.includes(stack.id);
-                return (
-                  <button
-                    key={stack.id}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    className={`stack-option ${isSelected ? 'selected' : ''}`}
-                    onClick={() => toggleStackSelection(stack.id)}
-                  >
-                    <span className="stack-option-name">{stack.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <div className="stacks-menu" role="listbox" aria-multiselectable="true">
+            {stacks.map((stack) => {
+              const isSelected = selectedStackIds.includes(stack.id);
+              return (
+                <button
+                  key={stack.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`stack-option ${isSelected ? 'selected' : ''}`}
+                  onClick={() => toggleStackSelection(stack.id)}
+                >
+                  <span className="stack-option-name">{stack.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         {feedback && <p className="new-class-feedback">{feedback}</p>}

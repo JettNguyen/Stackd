@@ -1,6 +1,5 @@
 .new-stack-page {
 	min-height: 100dvh;
-	background-color: var(--bg-primary);
 	padding: 25px 20px 40px;
 	color: var(--text-primary);
 }
@@ -85,7 +84,7 @@
 }
 
 .new-stack-feedback {
-	color: var(--color-primary);
+	color: var(--color-danger);
 	font-size: 14px;
 	margin-top: -10px;
 	margin-bottom: 20px;
@@ -169,6 +168,47 @@
 	color: var(--color-primary);
 }
 
+.generating-loader {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.generating-dots {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+
+.generating-dots span {
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color: var(--color-primary);
+	animation: generating-bounce 1.5s ease-in-out infinite;
+}
+
+.generating-dots span:nth-child(1) {
+	animation-delay: 0s;
+}
+.generating-dots span:nth-child(2) {
+	animation-delay: 0.2s;
+}
+.generating-dots span:nth-child(3) {
+	animation-delay: 0.4s;
+}
+
+@keyframes generating-bounce {
+	0%, 60%, 100% {
+		transform: translateY(0); opacity: 0.4;
+	}
+	30% {
+		transform: translateY(-4px); opacity: 1;
+	}
+}
+
 .import-button {
 	padding: 10px 20px;
 	border-radius: 15px;
@@ -178,11 +218,13 @@
 	cursor: pointer;
 	font-size: 16px;
 	font-weight: 700;
-	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+	transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .import-button:active {
 	background-color: var(--color-primary-dark);
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .import-textarea {
@@ -203,6 +245,204 @@
 
 .import-textarea::placeholder {
 	color: var(--text-secondary);
+}
+
+.ai-upload-dropzone {
+	display: grid;
+	place-items: center;
+	min-height: 120px;
+	text-align: center;
+	cursor: pointer;
+	border-style: dashed;
+}
+
+.ai-upload-dropzone-dragover {
+	border-style: solid;
+}
+
+.ai-upload-hidden-input {
+	display: none;
+}
+
+.ai-file-select-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.ai-file-list {
+	list-style: none;
+	padding: 0;
+	margin: 10px 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.ai-file-list-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background-color: var(--bg-secondary);
+	border-radius: 8px;
+	padding: 6px 10px;
+}
+
+.ai-file-list-name {
+	flex: 1;
+	font-size: 13px;
+	color: var(--text-primary);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+.ai-file-list-remove {
+	flex-shrink: 0;
+	background: none;
+	border: none;
+	color: var(--text-secondary);
+	cursor: pointer;
+	font-size: 13px;
+	padding: 0 2px;
+	line-height: 1;
+}
+
+.ai-file-list-remove:hover {
+	color: var(--color-danger);
+}
+
+.ai-card-count-wrap {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+.ai-card-count-heading-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.ai-card-count-label {
+	margin-bottom: 10px;
+}
+
+.ai-card-count-auto-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 14px;
+	color: var(--text-primary);
+	user-select: none;
+	padding: 5px;
+	margin-bottom: 10px;
+	border-radius: 25px;
+	cursor: pointer;
+}
+
+.ai-card-count-auto-checkbox {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 45px;
+	height: 25px;
+	border-radius: 25px;
+	background-color: var(--bg-secondary);
+	border: 1px solid var(--border-muted);
+	position: relative;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+	cursor: pointer;
+}
+
+.ai-card-count-auto-checkbox::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 2px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: var(--text-secondary);
+	transform: translate(0, -50%);
+	transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.ai-card-count-auto-checkbox:checked {
+	background-color: var(--color-primary-darker);
+	border-color: var(--color-primary);
+}
+
+.ai-card-count-auto-checkbox:checked::before {
+	transform: translate(20px, -50%);
+	background-color: var(--color-primary);
+}
+
+.ai-card-count-auto-checkbox:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+.ai-card-count-slider {
+	--ai-slider-progress: 0%;
+	width: 100%;
+	height: 10px;
+	appearance: none;
+	-webkit-appearance: none;
+	border-radius: 5px;
+	background: linear-gradient(
+		to right,
+		var(--color-primary) 0%,
+		var(--color-primary) var(--ai-slider-progress),
+		var(--bg-card) var(--ai-slider-progress),
+		var(--bg-card) 100%
+	);
+	padding: 0;
+	cursor: pointer;
+	filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+}
+
+.ai-card-count-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	background: var(--color-primary);
+}
+
+.ai-card-count-slider::-moz-range-thumb {
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	background: var(--color-primary);
+}
+
+.ai-card-count-slider::-moz-range-track {
+	height: 10px;
+	border-radius: 25px;
+	background: var(--bg-card);
+	border: none;
+}
+
+.ai-file-error {
+	color: var(--color-danger);
+}
+
+.ai-or-separator {
+	text-align: center;
+	margin-top: 15px;
+	margin-bottom: 0;
+	color: var(--text-secondary);
+	font-size: 12px;
+}
+
+.ai-paste-input {
+	margin-top: 10px;
+}
+
+.ai-notes-input {
+	margin-top: 15px;
 }
 
 .flashcards-panel {
@@ -297,15 +537,16 @@
 	justify-content: center;
 	font-size: 16px;
 	filter: opacity(50%);
-	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out, color 0.25s ease-in-out, border-color 0.25s ease-in-out, opacity 0.25s ease-in-out;
+	transition: transform 0.15s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out, opacity 0.2s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .flashcard-delete:active {
 	filter: opacity(100%);
-	transform: translateY(2px);
+	transform: translateY(1px);
 	background-color: var(--color-danger-dark);
 	border-color: var(--color-danger-dark);
 	color: var(--text-primary);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .flashcard-divider {
@@ -330,7 +571,7 @@
 	font-size: 24px;
 	cursor: pointer;
 	filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
-	transition: border-color 0.25s ease-in-out, transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+	transition: border-color 0.2s ease-in-out, transform 0.15s ease-in-out, background-color 0.2s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .add-card-button span {
@@ -341,10 +582,8 @@
 .add-card-button:active {
 	border-color: var(--color-secondary);
 	background-color: var(--bg-overlay-mid);
-}
-
-.save-stack-button:active {
-	background-color: var(--color-primary-dark);
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .save-stack-button {
@@ -365,7 +604,13 @@
 	font-weight: 700;
 	cursor: pointer;
 	filter: drop-shadow(0 0 5px rgb(0, 0, 0));
-	transition: transform 0.25s ease-in-out, background-color 0.25s ease-in-out;
+	transition: background-color 0.2s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.save-stack-button:active {
+	background-color: var(--color-primary-dark);
+	transform: translateY(1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @media (min-width: 650px) {
@@ -457,7 +702,7 @@
 .new-stack-modal-subtitle {
 	font-size: 14px;
 	color: var(--text-secondary);
-	margin: 0 0 20px;
+	margin: 0 0 10px;
 }
 
 .new-stack-modal-classes-grid {
@@ -476,19 +721,60 @@
 	cursor: pointer;
 	font-size: 16px;
 	font-weight: 600;
-	transition: all 0.25s ease-in-out;
+	transition: all 0.2s ease-in-out;
+	text-align: left;
+}
+
+.new-stack-modal-class-button-new-class {
+	padding: 15px 20px;
+	border-radius: 10px;
+	border: 2px dashed var(--border-muted);
+	background-color: var(--bg-card-secondary);
+	color: var(--text-primary);
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: 600;
+	transition: all 0.2s ease-in-out;
 	text-align: left;
 }
 
 .new-stack-modal-class-button:active {
 	background-color: var(--color-primary);
 	border-color: var(--color-primary);
+	transform: translateY(1px);
+}
+
+.new-stack-modal-class-button-new-class:active {
+	background-color: var(--bg-card);
+	border-color: var(--color-primary);
+	transform: translateY(1px);
 }
 
 .new-stack-modal-class-button.selected {
 	background-color: var(--color-primary);
 	border-color: var(--color-primary);
 	color: var(--text-primary);
+}
+
+.new-stack-modal-class-button-new-class.selected {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--text-primary);
+}
+
+.new-stack-modal-class-name-input {
+	width: 100%;
+	padding: 12px 15px;
+	border-radius: 10px;
+	border: 2px solid var(--color-primary);
+	background-color: var(--bg-card);
+	color: var(--text-primary);
+	font-size: 15px;
+	margin-bottom: 20px;
+}
+
+.new-stack-modal-class-name-input::placeholder {
+	color: var(--text-secondary);
 }
 
 .new-stack-modal-actions {
@@ -505,7 +791,7 @@
 	font-size: 16px;
 	font-weight: 700;
 	cursor: pointer;
-	transition: all 0.25s ease-in-out;
+	transition: all 0.2s ease-in-out;
 }
 
 .new-stack-modal-cancel-button {
@@ -515,6 +801,7 @@
 
 .new-stack-modal-cancel-button:active {
 	background-color: var(--bg-tertiary);
+	transform: translateY(1px);
 }
 
 .new-stack-modal-save-button {
@@ -524,11 +811,14 @@
 
 .new-stack-modal-save-button:active {
 	background-color: var(--color-primary-dark);
+	transform: translateY(1px);
 }
 
 @media (hover: hover) and (pointer: fine) {
 	.save-stack-button:hover {
 		background-color: var(--color-primary-dark);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.flashcard-delete:hover {
@@ -553,6 +843,11 @@
 	}
 
 	.new-stack-modal-save-button:hover {
+		background-color: var(--color-primary-dark);
+	}
+
+	.new-stack-modal-class-button-new-class:hover {
+		border-color: var(--color-primary);
 		background-color: var(--color-primary-dark);
 	}
 }

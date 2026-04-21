@@ -4,6 +4,7 @@ export interface Account {
   email?: string
   username: string
   password: string
+  publicProfile?: boolean
 }
 
 export interface Class {
@@ -12,6 +13,7 @@ export interface Class {
   users: {
     account: Types.ObjectId
     role: 'viewer' | 'editor' | 'owner'
+    lastOpenedAt?: Date
   }[]
   createdAt?: Date
   updatedAt?: Date
@@ -24,6 +26,7 @@ export interface Stack {
   users: {
     account: Types.ObjectId
     role: 'viewer' | 'editor' | 'owner'
+    lastOpenedAt?: Date
   }[]
   createdAt?: Date
   updatedAt?: Date

@@ -11,6 +11,8 @@ import addClassMember from '../controllers/class/add-class-member'
 import removeClassMember from '../controllers/class/remove-class-member'
 import updateClassVisibility from '../controllers/class/update-class-visibility'
 import deleteClass from '../controllers/class/delete-class'
+import addStack from '../controllers/class/add-stack'
+import removeStack from '../controllers/class/remove-stack'
 
 // initialize router
 const router = express.Router()
@@ -39,6 +41,12 @@ router.post('/member/remove', [checkBearerToken], removeClassMember, errorHandle
 
 // PATCH at path: http://localhost:8080/class/visibility
 router.patch('/visibility', [checkBearerToken], updateClassVisibility, errorHandler)
+
+// POST at path: http://localhost:8080/class/add-stack
+router.post('/add-stack', [checkBearerToken], addStack, errorHandler)
+
+// POST at path: http://localhost:8080/class/remove-stack
+router.post('/remove-stack', [checkBearerToken], removeStack, errorHandler)
 
 // DELETE at path: http://localhost:8080/class/delete
 router.delete('/delete', [checkBearerToken], deleteClass, errorHandler)

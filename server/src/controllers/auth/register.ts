@@ -10,6 +10,7 @@ const register: RequestHandler = async (req, res, next) => {
       {
         username: joi.instance.string().required(),
         password: joi.instance.string().required(),
+        email: joi.instance.string().email().required(),
       },
       req.body
     )
@@ -20,8 +21,8 @@ const register: RequestHandler = async (req, res, next) => {
 
     const username = String(req.body.username || '').trim().toLowerCase()
     const password = String(req.body.password || '')
+    const email = String(req.body.email || '').trim().toLowerCase()
 
-    // Verify account username as unique
     const foundUsername = await Account.findOne({ username })
 
     if (foundUsername) {
@@ -31,17 +32,20 @@ const register: RequestHandler = async (req, res, next) => {
       })
     }
 
-    // Encrypt password
-    const hash = await crypt.hash(password)
+    const foundEmail = await Account.findOne({ email })
 
-    // Create account
-    const account = new Account({ username, password: hash })
+    if (foundEmail) {
+      return next({
+        statusCode: 400,
+        message: 'An account already exists with that email',
+      })
+    }
+
+    const hash = await crypt.hash(password)
+    const account = new Account({ username, password: hash, email })
     await account.save()
 
-    // Generate access token
     const token = jwt.signToken({ uid: account._id, username: account.username })
-
-    // Exclude password from response
     const { password: _, ...data } = account.toObject()
 
     res.status(201).json({
