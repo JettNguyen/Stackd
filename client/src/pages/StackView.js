@@ -402,10 +402,25 @@ const StackView = () => {
   };
 
   const toggleCardStatus = (cardId, status) => {
-    setCardStatuses((prev) => ({
-      ...prev,
-      [cardId]: prev[cardId] === status ? null : status,
-    }));
+    setCardStatuses((prev) => {
+      const next = { ...prev, [cardId]: prev[cardId] === status ? null : status };
+
+      const stackId = stack?.id;
+      if (stackId) {
+        const backendStatus = next[cardId] === 'star'
+          ? 'review'
+          : next[cardId] === 'check'
+            ? 'mastered'
+            : 'learning';
+
+        apiRequest('/stack/update-card-progress', {
+          method: 'POST',
+          body: JSON.stringify({ cardId, stackId, status: backendStatus }),
+        }).catch(() => {});
+      }
+
+      return next;
+    });
   };
 
   const handleStar = () => {

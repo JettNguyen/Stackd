@@ -8,6 +8,7 @@ import create from '../controllers/stack/create-stack'
 import update from '../controllers/stack/update-stack'
 import deleteStack from '../controllers/stack/delete-stack'
 import generateStack from '../controllers/stack/generate-stack'
+import updateCardProgress from '../controllers/stack/update-card-progress'
 
 const router = express.Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } })
@@ -17,5 +18,6 @@ router.post('/create', [checkBearerToken], create, errorHandler)
 router.post('/update', [checkBearerToken], update, errorHandler)
 router.post('/delete', [checkBearerToken], deleteStack, errorHandler)
 router.post('/generate', [checkBearerToken, upload.array('files', 10)], generateStack, errorHandler)
+router.post('/update-card-progress', [checkBearerToken], updateCardProgress, errorHandler)
 
 export default router
